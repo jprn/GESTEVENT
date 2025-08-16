@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GESTEVENT · Accueil</title>
+  <link rel="manifest" href="../manifest.json">
+  <link rel="stylesheet" href="../css/landing.css">
+</head>
+<body>
+  <header class="header container">
+    <div class="header__brand">
+      <img src="../assets/logo.svg" alt="GESTEVENT" width="28" height="28"/>
+      <span>GESTEVENT</span>
+    </div>
+    <nav class="header__actions">
+      <a class="btn btn--ghost" href="./login.html">Se connecter</a>
+      <a class="btn" href="./signup.html">S'inscrire</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero container">
+      <h1>Vendez vos billets et gérez vos événements simplement</h1>
+      <p>Créez vos événements, vendez des billets, suivez les participants et faites le check‑in sur place avec QR code.</p>
+      <div class="actions">
+        <a class="btn" href="#plans">Choisir un plan</a>
+        <a class="btn btn--ghost" href="./signup.html">Voir une page d'inscription</a>
+      </div>
+    </section>
+
+    <section id="plans" class="pricing container">
+      <h2 class="card__title">Choisissez votre plan</h2>
+      <div class="pricing__grid">
+        <article class="card price" data-plan="free">
+          <div class="price__header">
+            <div class="price__title">Gratuit</div>
+            <div class="price__value">0€<span class="price__per">/événement</span></div>
+          </div>
+          <ul class="price__features">
+            <li>Événements illimités (brouillon)</li>
+            <li>Billets gratuits</li>
+            <li>Liste des participants</li>
+            <li>Check‑in QR code</li>
+          </ul>
+          <div class="card__actions">
+            <a class="btn" href="./signup.html?plan=free">Commencer</a>
+          </div>
+        </article>
+
+        <article class="card price" data-plan="pro">
+          <div class="price__header">
+            <div class="price__title">Pro</div>
+            <div class="price__value">29€<span class="price__per">/mois</span></div>
+          </div>
+          <ul class="price__features">
+            <li>Vente de billets payants (Stripe)</li>
+            <li>Inviter des contrôleurs</li>
+            <li>Exports CSV avancés</li>
+            <li>Support prioritaire</li>
+          </ul>
+          <div class="card__actions">
+            <a class="btn btn--secondary" href="./signup.html?plan=pro">Essayer Pro</a>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer container">
+    <div>© <span id="y"></span> GESTEVENT — Tous droits réservés.</div>
+  </footer>
+
+  <script>
+    // Affiche l'année et mémorise le plan choisi pour un pré-remplissage futur
+    document.getElementById('y').textContent = new Date().getFullYear();
+    document.querySelectorAll('[data-plan] .btn').forEach(btn=>{
+      btn.addEventListener('click', (e)=>{
+        try {
+          const plan = e.currentTarget.closest('[data-plan]')?.getAttribute('data-plan');
+          if (plan) localStorage.setItem('selected_plan', plan);
+        } catch(_){}
+      });
+    });
+  </script>
+</body>
+</html>

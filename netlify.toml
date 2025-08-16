@@ -1,0 +1,44 @@
+[build]
+  publish = "."
+
+# Redirect root to landing page under /html/
+[[redirects]]
+  from = "/"
+  to = "/html/index.html"
+  status = 301
+  force = true
+
+# Pretty URLs for main pages (optional niceties)
+[[redirects]]
+  from = "/login"
+  to = "/html/login.html"
+  status = 301
+
+[[redirects]]
+  from = "/signup"
+  to = "/html/signup.html"
+  status = 301
+
+[[redirects]]
+  from = "/dashboard"
+  to = "/html/dashboard.html"
+  status = 301
+
+[[redirects]]
+  from = "/profile"
+  to = "/html/profile.html"
+  status = 301
+
+[[redirects]]
+  from = "/create-event"
+  to = "/html/create-event.html"
+  status = 301
+
+# Security headers (basic, non-breaking)
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=()"

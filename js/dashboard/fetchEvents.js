@@ -192,4 +192,9 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   qs('#prevPage')?.addEventListener('click', ()=>{ if (state.page>1) loadPage(state.page-1); });
   qs('#nextPage')?.addEventListener('click', ()=>{ loadPage(state.page+1); });
   await loadPage(1);
+  // Show success toast if coming from wizard
+  try{
+    const msg = localStorage.getItem('dashboard_toast');
+    if (msg){ toast(msg, 'info'); localStorage.removeItem('dashboard_toast'); }
+  }catch{}
 });

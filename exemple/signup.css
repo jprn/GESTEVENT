@@ -1,0 +1,13 @@
+@import url('./variables.css');
+/* Base */
+html,body{height:100%}
+body{background:var(--color-surface);color:var(--color-text);font:400 var(--fs-14)/1.5 var(--font-family);margin:0}
+a{color:var(--color-primary);text-decoration:none}
+a:hover{text-decoration:underline}
+*:focus{outline:2px solid var(--color-primary-50);outline-offset:2px}
+.container{max-width:var(--container);margin:0 auto;padding:0 var(--space-4)}
+
+#app{min-height:100vh;display:flex;align-items:center;justify-content:center}
+
+/* Shared layout for auth cards */
+.auth-card{max-width:480px;width:100%;margin:40px auto 0}

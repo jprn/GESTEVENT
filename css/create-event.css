@@ -7,4 +7,37 @@ a:hover{text-decoration:underline}
 *:focus{outline:2px solid var(--color-primary-50);outline-offset:2px}
 .container{max-width:var(--container);margin:0 auto;padding:0 var(--space-4)}
 
-#app{padding:var(--space-6)}
+/* Header */
+.ce__header{display:flex;align-items:center;justify-content:space-between;padding:var(--space-6) var(--space-4)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;background:var(--color-primary);color:#fff;border:none;border-radius:10px;padding:.6rem 1rem;cursor:pointer;text-decoration:none}
+.btn:hover{filter:brightness(.95)}
+.btn--ghost{background:transparent;color:var(--color-text);border:1px solid var(--color-border-2)}
+
+/* Steps */
+.steps{list-style:none;display:flex;gap:var(--space-3);padding:0;margin:0 0 var(--space-5)}
+.step{display:flex;align-items:center;gap:.5rem;border:1px solid var(--color-border-2);border-radius:999px;padding:.4rem .8rem;color:var(--color-text-2)}
+.step span{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;background:var(--color-surface-2);font-weight:700}
+.step.is-active{border-color:var(--color-primary);color:var(--color-text)}
+.step.is-active span{background:var(--color-primary-10);color:var(--color-primary)}
+
+/* Panels & fields */
+.panel{border:1px solid var(--color-border-2);border-radius:12px;padding:var(--space-5);background:var(--color-surface);margin-bottom:var(--space-5)}
+.field{margin:0 0 var(--space-4)}
+.field label{display:block;margin:0 0 .35rem;font-weight:600}
+.field input[type="text"],
+.field input[type="number"],
+.field input[type="datetime-local"],
+.field select{width:100%;border:1px solid var(--color-border-2);background:var(--color-surface);color:var(--color-text);border-radius:10px;padding:.55rem .7rem}
+.hint{color:var(--color-text-2)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3)}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-3)}
+@media (max-width: 720px){.grid-2,.grid-3{grid-template-columns:1fr}}
+
+/* WYS */
+.wys-toolbar{display:flex;gap:.5rem;margin:0 0 .5rem}
+.wys-toolbar button{border:1px solid var(--color-border-2);background:var(--color-surface-2);color:var(--color-text);border-radius:8px;padding:.3rem .5rem;cursor:pointer}
+.wys{min-height:140px;border:1px dashed var(--color-border-2);border-radius:10px;padding:.6rem;background:var(--color-surface)}
+
+/* Wizard actions */
+.wizard__actions{display:flex;align-items:center;gap:.5rem}
+.wizard__actions .spacer{flex:1}

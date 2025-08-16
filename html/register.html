@@ -5,10 +5,48 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>EventFlow · Inscription</title>
   <link rel="manifest" href="../manifest.json">
-  <link rel="stylesheet" href="../css/register.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="../assets/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../css/auth.css">
 </head>
 <body>
-  <div id="app"></div>
-  <script src="../js/register/register.js" defer></script>
+  <div id="app" class="auth-container">
+    <div class="auth-card">
+      <a class="logo" href="./index.html">
+        <img src="../assets/logo.svg" alt="EventFlow" width="28" height="28">
+        <span class="logo-text">EventFlow</span>
+      </a>
+      <h1 class="auth-title">Créer un compte</h1>
+      <p class="auth-subtitle">Rejoignez-nous et commencez à organiser vos événements.</p>
+
+      <form id="signup-form" class="auth-form" novalidate>
+        <div class="form-group">
+          <label for="email" class="form-label">Email</label>
+          <input id="email" name="email" type="email" required class="form-control" autocomplete="email" />
+          <div class="error-message" id="email-error" aria-live="polite"></div>
+        </div>
+        <div class="form-group">
+          <div class="password-label-group">
+            <label for="password" class="form-label">Mot de passe</label>
+          </div>
+          <div class="password-input-group">
+            <input id="password" name="password" type="password" required class="form-control" autocomplete="new-password" />
+          </div>
+          <div class="error-message" id="password-error" aria-live="polite"></div>
+        </div>
+        <button id="register-button" type="submit" class="btn btn-primary btn-full btn-large">
+          <span class="btn-text">S'inscrire</span>
+          <span class="btn-loader" aria-hidden="true"></span>
+        </button>
+      </form>
+      <div class="auth-links">Déjà un compte ? <a href="./login.html">Se connecter</a></div>
+      <div id="feedback" class="global-message is-info" aria-live="polite"></div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/utils/api.js" defer></script>
+  <script src="../js/auth/signup.js" defer></script>
 </body>
 </html>

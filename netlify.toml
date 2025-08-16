@@ -34,6 +34,11 @@
   to = "/html/create-event.html"
   status = 301
 
+[[redirects]]
+  from = "/pricing"
+  to = "/html/pricing.html"
+  status = 301
+
 # Security headers (basic, non-breaking)
 [[headers]]
   for = "/*"

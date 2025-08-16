@@ -5,30 +5,44 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>EventFlow · Connexion</title>
   <link rel="manifest" href="../manifest.json">
-  <link rel="stylesheet" href="../css/login.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="../assets/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../css/auth.css">
 </head>
 <body>
-  <div id="app" class="container">
-    <div class="card auth-card">
-      <h1 class="card__title">Se connecter</h1>
+  <div id="app" class="auth-container">
+    <div class="auth-card">
+      <a class="logo" href="./index.html">
+        <img src="../assets/logo.svg" alt="EventFlow" width="28" height="28">
+        <span class="logo-text">EventFlow</span>
+      </a>
+      <h1 class="auth-title">Se connecter</h1>
+      <p class="auth-subtitle">Ravie de vous revoir. Accédez à votre tableau de bord.</p>
       <form id="login-form" novalidate>
-        <div class="field">
-          <label for="email" class="field__label">Email</label>
-          <input id="email" name="email" type="email" required class="input" autocomplete="email" />
-          <div class="field__error" id="email-error" aria-live="polite"></div>
+        <div class="form-group">
+          <label for="email" class="form-label">Email</label>
+          <input id="email" name="email" type="email" required class="form-control" autocomplete="email" />
+          <div class="error-message" id="email-error" aria-live="polite"></div>
         </div>
-        <div class="field">
-          <label for="password" class="field__label">Mot de passe</label>
-          <input id="password" name="password" type="password" required class="input" autocomplete="current-password" />
-          <div class="field__error" id="password-error" aria-live="polite"></div>
+        <div class="form-group">
+          <div class="password-label-group">
+            <label for="password" class="form-label">Mot de passe</label>
+            <a href="./reset-password.html">Mot de passe oublié ?</a>
+          </div>
+          <div class="password-input-group">
+            <input id="password" name="password" type="password" required class="form-control" autocomplete="current-password" />
+          </div>
+          <div class="error-message" id="password-error" aria-live="polite"></div>
         </div>
-        <div class="card__actions">
-          <button type="submit" class="btn">Connexion</button>
-          <a href="./reset-password.html" class="btn btn--ghost">Mot de passe oublié</a>
-        </div>
+        <button id="login-button" type="submit" class="btn btn-primary btn-full btn-large">
+          <span class="btn-text">Se connecter</span>
+          <span class="btn-loader" aria-hidden="true"></span>
+        </button>
       </form>
-      <div class="field__help">Pas de compte ? <a href="./signup.html">Créer un compte</a></div>
-      <div id="feedback" class="field__help" aria-live="polite"></div>
+      <div class="auth-links">Pas de compte ? <a href="./register.html">Créer un compte</a></div>
+      <div id="feedback" class="global-message" aria-live="polite"></div>
     </div>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

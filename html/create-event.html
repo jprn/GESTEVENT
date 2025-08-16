@@ -8,7 +8,115 @@
   <link rel="stylesheet" href="../css/create-event.css">
 </head>
 <body>
-  <div id="app"></div>
+  <header class="container ce__header">
+    <h1>Créer / Éditer un événement</h1>
+    <a class="btn btn--ghost" href="./dashboard.html">Retour au dashboard</a>
+  </header>
+
+  <main class="container">
+    <ol class="steps" role="tablist" aria-label="Création d'événement">
+      <li class="step is-active" data-step="1"><span>1</span> Informations</li>
+      <li class="step" data-step="2"><span>2</span> Billetterie</li>
+    </ol>
+
+    <form id="eventForm" novalidate>
+      <!-- Étape 1 -->
+      <section class="panel" data-step="1" role="tabpanel" aria-labelledby="step-1">
+        <div class="field">
+          <label for="title">Titre de l'événement</label>
+          <input id="title" name="title" type="text" minlength="5" required placeholder="Ex: Soirée networking" />
+          <small class="hint">Minimum 5 caractères.</small>
+        </div>
+
+        <div class="field">
+          <label>Description</label>
+          <div class="wys-toolbar" aria-label="Outils d'édition">
+            <button type="button" data-cmd="bold"><b>B</b></button>
+            <button type="button" data-cmd="italic"><i>I</i></button>
+            <button type="button" data-cmd="insertUnorderedList">• Liste</button>
+            <button type="button" data-cmd="formatBlock" data-value="h3">Sous-titre</button>
+          </div>
+          <div id="description" class="wys" contenteditable="true" aria-multiline="true" spellcheck="true"></div>
+          <input type="hidden" id="description_html" name="description_html" />
+        </div>
+
+        <div class="field">
+          <label for="location_text">Lieu</label>
+          <input id="location_text" name="location_text" type="text" placeholder="Adresse ou en ligne" />
+        </div>
+
+        <div class="field grid-2">
+          <div>
+            <label for="starts_at">Début</label>
+            <input id="starts_at" name="starts_at" type="datetime-local" required />
+          </div>
+          <div>
+            <label for="ends_at">Fin</label>
+            <input id="ends_at" name="ends_at" type="datetime-local" required />
+          </div>
+        </div>
+      </section>
+
+      <!-- Étape 2 -->
+      <section class="panel" data-step="2" role="tabpanel" aria-labelledby="step-2" hidden>
+        <div class="field grid-2">
+          <div>
+            <label for="ticket_type">Type de billet</label>
+            <select id="ticket_type" name="ticket_type">
+              <option value="free">Gratuit</option>
+              <option value="paid">Payant</option>
+            </select>
+          </div>
+          <div>
+            <label for="price_cents">Prix (EUR)</label>
+            <input id="price_cents" name="price_cents" type="number" min="0" step="0.01" placeholder="0.00" />
+            <small class="hint">Saisi en euros, sera converti en cents.</small>
+          </div>
+        </div>
+
+        <div class="field grid-3">
+          <div>
+            <label for="qty_total">Quantité totale</label>
+            <input id="qty_total" name="qty_total" type="number" min="0" max="10000" />
+          </div>
+          <div>
+            <label for="max_per_user">Max / utilisateur</label>
+            <input id="max_per_user" name="max_per_user" type="number" min="1" />
+          </div>
+          <div>
+            <label for="is_open">
+              <input id="is_open" name="is_open" type="checkbox" /> Ventes ouvertes
+            </label>
+          </div>
+        </div>
+
+        <div class="field grid-2">
+          <div>
+            <label for="sales_from">Vente du</label>
+            <input id="sales_from" name="sales_from" type="datetime-local" />
+          </div>
+          <div>
+            <label for="sales_until">au</label>
+            <input id="sales_until" name="sales_until" type="datetime-local" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="show_remaining">
+            <input id="show_remaining" name="show_remaining" type="checkbox" /> Afficher les places restantes
+          </label>
+        </div>
+      </section>
+
+      <div class="wizard__actions">
+        <button type="button" id="prevStep" class="btn btn--ghost" disabled>Précédent</button>
+        <div class="spacer"></div>
+        <button type="button" id="saveDraft" class="btn btn--ghost">Enregistrer brouillon</button>
+        <button type="button" id="nextStep" class="btn">Suivant</button>
+        <button type="button" id="publish" class="btn" hidden>Publier</button>
+      </div>
+    </form>
+  </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../js/utils/api.js" defer></script>
   <script src="../js/utils/authGuard.js" defer></script>

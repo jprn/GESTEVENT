@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GESTEVENT · Tarifs</title>
+  <link rel="manifest" href="../manifest.json">
+  <link rel="stylesheet" href="../css/landing.css">
+</head>
+<body>
+  <header class="header">
+    <div class="container header__bar">
+      <a class="brand" href="./index.html">
+        <img src="../assets/logo.svg" alt="GESTEVENT" height="28"/>
+        <span>GESTEVENT</span>
+      </a>
+      <nav class="nav">
+        <a href="./index.html#features">Fonctionnalités</a>
+        <a href="#">Tarifs</a>
+        <a href="./login.html" class="btn btn--ghost">Se connecter</a>
+        <a href="./signup.html" class="btn">S’inscrire</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero container">
+      <div class="hero__content">
+        <h1>Des tarifs simples et transparents</h1>
+        <p>Choisissez le plan adapté à vos besoins. Changez ou annulez quand vous voulez.</p>
+      </div>
+    </section>
+
+    <section id="plans" class="pricing container">
+      <h2 class="section__title">Choisissez votre plan</h2>
+      <div class="pricing__grid">
+        <article class="card price" data-plan="free">
+          <div class="price__header">
+            <div class="price__title">Gratuit</div>
+            <div class="price__value">0€<span class="price__per">/événement</span></div>
+          </div>
+          <ul class="price__features">
+            <li>Événements illimités (brouillon)</li>
+            <li>Billets gratuits</li>
+            <li>Liste des participants</li>
+            <li>Check‑in QR code</li>
+          </ul>
+          <div class="card__actions">
+            <a class="btn" href="./signup.html?plan=free">Commencer</a>
+          </div>
+        </article>
+
+        <article class="card price price--highlight" data-plan="pro">
+          <div class="price__header">
+            <div class="price__title">Pro <span class="badge">Populaire</span></div>
+            <div class="price__value">29€<span class="price__per">/mois</span></div>
+          </div>
+          <ul class="price__features">
+            <li>Vente de billets payants (Stripe)</li>
+            <li>Inviter des contrôleurs</li>
+            <li>Exports CSV avancés</li>
+            <li>Support prioritaire</li>
+          </ul>
+          <div class="card__actions">
+            <a class="btn btn--secondary" href="./signup.html?plan=pro">Essayer Pro</a>
+          </div>
+        </article>
+
+        <article class="card price" data-plan="pack">
+          <div class="price__header">
+            <div class="price__title">Event Pack</div>
+            <div class="price__value">3€<span class="price__per">/événement</span></div>
+          </div>
+          <ul class="price__features">
+            <li>1 événement</li>
+            <li>Participants illimités</li>
+            <li>Page personnalisable</li>
+            <li>Billets payants (+2%)</li>
+            <li>Export CSV basique</li>
+          </ul>
+          <div class="card__actions">
+            <a class="btn" href="./signup.html?plan=pack">Choisir Pack</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="faq" id="faq">
+      <div class="container">
+        <h2 class="section__title">Questions fréquentes</h2>
+        <details class="faq__item">
+          <summary>La version gratuite inclut quoi ?</summary>
+          <p>Tout le nécessaire pour démarrer: création d'événements, inscriptions et check‑in QR.</p>
+        </details>
+        <details class="faq__item">
+          <summary>Comment sont gérés les paiements ?</summary>
+          <p>Via Stripe. Les frais s'appliquent uniquement sur les ventes payantes.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="cta">
+      <div class="container cta__wrap">
+        <h2>Prêt à lancer votre prochain événement ?</h2>
+        <div class="actions">
+          <a class="btn" href="./signup.html">Commencer gratuitement</a>
+          <a class="btn btn--ghost" href="./index.html#features">Voir les fonctionnalités</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__bottom">© <span id="y"></span> GESTEVENT — Tous droits réservés.</div>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('y').textContent = new Date().getFullYear();
+    document.querySelectorAll('[data-plan] .btn').forEach(btn=>{
+      btn.addEventListener('click', (e)=>{
+        try {
+          const plan = e.currentTarget.closest('[data-plan]')?.getAttribute('data-plan');
+          if (plan) localStorage.setItem('selected_plan', plan);
+        } catch {}
+      });
+    });
+  </script>
+</body>
+</html>

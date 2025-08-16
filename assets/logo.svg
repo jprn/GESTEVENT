@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="EventFlow logo">
+  <rect width="128" height="128" rx="24" fill="#3B82F6"/>
+  <path d="M28 48h72" stroke="#DBEAFE" stroke-width="10" stroke-linecap="round"/>
+  <path d="M28 80h48" stroke="#DBEAFE" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="96" cy="80" r="6" fill="#DBEAFE"/>
+  <text x="64" y="116" text-anchor="middle" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="14" fill="#DBEAFE">EventFlow</text>
+</svg>

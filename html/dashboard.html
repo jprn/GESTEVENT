@@ -8,7 +8,38 @@
   <link rel="stylesheet" href="../css/dashboard.css">
 </head>
 <body>
-  <div id="app"></div>
+  <header class="container dash__header">
+    <h1>Tableau de bord</h1>
+    <div class="actions">
+      <a class="btn" href="./create-event.html">Créer un événement</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="stats" class="stats">
+      <div class="stat"><span class="stat__value" id="stat-total-events">—</span><span class="stat__label">Événements</span></div>
+      <div class="stat"><span class="stat__value" id="stat-total-attendees">—</span><span class="stat__label">Inscriptions</span></div>
+      <div class="stat"><span class="stat__value" id="stat-total-checkins">—</span><span class="stat__label">Check‑ins</span></div>
+      <div class="stat"><span class="stat__value" id="stat-total-revenue">—</span><span class="stat__label">Revenu</span></div>
+    </section>
+
+    <section id="events" class="events">
+      <div id="events-skeleton" class="cards skeletons" aria-hidden="true"></div>
+      <div id="events-empty" class="empty" hidden>
+        <p>Aucun événement pour le moment.</p>
+        <a class="btn" href="./create-event.html">Créer mon premier événement</a>
+      </div>
+      <div id="events-grid" class="cards" hidden></div>
+    </section>
+
+    <nav id="pagination" class="pagination" hidden>
+      <button id="prevPage" class="btn btn--ghost" disabled>Précédent</button>
+      <span id="pageInfo">Page 1</span>
+      <button id="nextPage" class="btn btn--ghost" disabled>Suivant</button>
+    </nav>
+  </main>
+
+  <div id="toast" role="status" aria-live="polite" class="toast" hidden></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../js/utils/api.js" defer></script>
   <script src="../js/utils/authGuard.js" defer></script>

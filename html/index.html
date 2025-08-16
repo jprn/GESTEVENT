@@ -8,29 +8,64 @@
   <link rel="stylesheet" href="../css/landing.css">
 </head>
 <body>
-  <header class="header container">
-    <div class="header__brand">
-      <img src="../assets/logo.svg" alt="GESTEVENT" width="28" height="28"/>
-      <span>GESTEVENT</span>
+  <header class="header">
+    <div class="container header__wrap">
+      <div class="header__brand">
+        <img src="../assets/logo.svg" alt="GESTEVENT" width="28" height="28"/>
+        <span>GESTEVENT</span>
+      </div>
+      <nav class="header__nav">
+        <a href="#features">Fonctionnalités</a>
+        <a href="#plans">Tarifs</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <div class="header__actions">
+        <a class="btn btn--ghost" href="./login.html">Se connecter</a>
+        <a class="btn" href="./signup.html">S'inscrire</a>
+      </div>
     </div>
-    <nav class="header__actions">
-      <a class="btn btn--ghost" href="./login.html">Se connecter</a>
-      <a class="btn" href="./signup.html">S'inscrire</a>
-    </nav>
   </header>
 
   <main>
-    <section class="hero container">
-      <h1>Vendez vos billets et gérez vos événements simplement</h1>
-      <p>Créez vos événements, vendez des billets, suivez les participants et faites le check‑in sur place avec QR code.</p>
-      <div class="actions">
-        <a class="btn" href="#plans">Choisir un plan</a>
-        <a class="btn btn--ghost" href="./signup.html">Voir une page d'inscription</a>
+    <section class="hero">
+      <div class="container hero__wrap">
+        <div class="hero__content">
+          <h1>Simplifiez la gestion de vos événements</h1>
+          <p>Créez des pages d'événements, gérez les inscriptions, vendez des billets et faites le check‑in par QR code.</p>
+          <div class="actions">
+            <a class="btn" href="#plans">Choisir un plan</a>
+            <a class="btn btn--ghost" href="./signup.html">Commencer gratuitement</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="features">
+      <div class="container">
+        <h2 class="section__title">Fonctionnalités clés</h2>
+        <div class="features__grid">
+          <article class="feature">
+            <h3>Billets & QR codes</h3>
+            <p>Générez des billets avec QR codes pour un contrôle d'accès rapide.</p>
+          </article>
+          <article class="feature">
+            <h3>Inscriptions fluides</h3>
+            <p>Collectez les inscriptions en quelques clics, même sur mobile.</p>
+          </article>
+          <article class="feature">
+            <h3>Tableaux de bord</h3>
+            <p>Suivez vos ventes et présences en temps réel.</p>
+          </article>
+          <article class="feature">
+            <h3>Contrôleurs invités</h3>
+            <p>Invitez des contrôleurs pour gérer les entrées le jour J.</p>
+          </article>
+        </div>
       </div>
     </section>
 
     <section id="plans" class="pricing container">
-      <h2 class="card__title">Choisissez votre plan</h2>
+      <h2 class="section__title">Choisissez votre plan</h2>
       <div class="pricing__grid">
         <article class="card price" data-plan="free">
           <div class="price__header">
@@ -65,10 +100,40 @@
         </article>
       </div>
     </section>
+
+    <section id="faq" class="faq">
+      <div class="container">
+        <h2 class="section__title">Questions fréquentes</h2>
+        <details class="faq__item">
+          <summary>La version gratuite inclut quoi ?</summary>
+          <p>Tout le nécessaire pour démarrer: création d'événements, inscriptions et check‑in QR.</p>
+        </details>
+        <details class="faq__item">
+          <summary>Puis-je vendre des billets payants ?</summary>
+          <p>Oui avec le plan Pro (intégration Stripe).</p>
+        </details>
+        <details class="faq__item">
+          <summary>Le check‑in marche sur mobile ?</summary>
+          <p>Oui, l'app fonctionne sur mobile et la caméra est supportée en HTTPS.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="cta">
+      <div class="container cta__wrap">
+        <h2>Prêt à lancer votre prochain événement ?</h2>
+        <div class="actions">
+          <a class="btn" href="./signup.html">Commencer gratuitement</a>
+          <a class="btn btn--ghost" href="#features">Voir les fonctionnalités</a>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <footer class="footer container">
-    <div>© <span id="y"></span> GESTEVENT — Tous droits réservés.</div>
+  <footer class="footer">
+    <div class="container">
+      <div>© <span id="y"></span> GESTEVENT — Tous droits réservés.</div>
+    </div>
   </footer>
 
   <script>

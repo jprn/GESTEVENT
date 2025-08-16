@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventFlow | Gérez facilement vos événements</title>
+    <meta name="description" content="EventFlow - La plateforme pour créer, gérer et promouvoir vos événements facilement. Billets, QR codes, paiements et plus encore.">
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/index.css">
+    <!-- Préchargement de la police Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../assets/favicon.png">
+</head>
+<body>
+    <header class="header">
+        <div class="container header-container">
+            <div class="logo">
+                <a href="index.html">
+                    <span class="logo-text">EventFlow</span>
+                </a>
+            </div>
+            <nav class="main-nav">
+                <ul class="nav-list">
+                    <li><a href="#features" class="nav-link">Fonctionnalités</a></li>
+                    <li><a href="#pricing" class="nav-link">Tarifs</a></li>
+                    <li><a href="#faq" class="nav-link">FAQ</a></li>
+                </ul>
+            </nav>
+            <div class="auth-buttons">
+                <a href="./auth/login.html" class="btn-login">Connexion</a>
+                <a href="./auth/register.html" class="btn-signup">Inscription</a>
+            </div>
+            <button class="mobile-menu-toggle" aria-label="Menu">
+                <span class="hamburger-icon"></span>
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container hero-container">
+                <div class="hero-content">
+                    <h1 class="hero-title">Simplifiez la gestion de vos événements</h1>
+                    <p class="hero-subtitle">Créez des pages d'événements attrayantes, gérez les inscriptions, collectez les paiements et contrôlez les présences - tout en un seul endroit.</p>
+                    <div class="hero-cta">
+                        <a href="./auth/register.html" class="btn btn-primary">Commencer gratuitement</a>
+                        <a href="#demo" class="btn btn-outline">Voir une démo</a>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <img src="../assets/hero-image.svg" alt="Plateforme EventFlow en action" width="600" height="400">
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="features">
+            <div class="container">
+                <h2 class="section-title">Tout ce qu'il faut pour réussir vos événements</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <img src="../assets/icons/page-icon.svg" alt="Icône page" width="40" height="40">
+                        </div>
+                        <h3 class="feature-title">Landing pages personnalisables</h3>
+                        <p class="feature-description">Créez facilement des pages d'événements élégantes avec notre éditeur drag-and-drop, sans connaissances techniques.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <img src="../assets/icons/ticket-icon.svg" alt="Icône ticket" width="40" height="40">
+                        </div>
+                        <h3 class="feature-title">Billets et QR codes</h3>
+                        <p class="feature-description">Émission automatique de billets avec QR codes pour un contrôle d'accès rapide et sécurisé.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <img src="../assets/icons/payment-icon.svg" alt="Icône paiement" width="40" height="40">
+                        </div>
+                        <h3 class="feature-title">Paiements simplifiés</h3>
+                        <p class="feature-description">Acceptez les paiements en ligne sécurisés pour vos événements gratuits et payants.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <img src="../assets/icons/checkin-icon.svg" alt="Icône check-in" width="40" height="40">
+                        </div>
+                        <h3 class="feature-title">Check-in mobile</h3>
+                        <p class="feature-description">Scannez les QR codes à l'entrée de votre événement pour un accueil fluide et professionnel.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <img src="../assets/icons/stats-icon.svg" alt="Icône statistiques" width="40" height="40">
+                        </div>
+                        <h3 class="feature-title">Statistiques en temps réel</h3>
+                        <p class="feature-description">Suivez les inscriptions, les présences et les revenus avec des tableaux de bord intuitifs.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <img src="../assets/icons/export-icon.svg" alt="Icône export" width="40" height="40">
+                        </div>
+                        <h3 class="feature-title">Exports et rapports</h3>
+                        <p class="feature-description">Générez et téléchargez facilement des listes de participants et des rapports d'événements.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="demo" class="demo">
+            <div class="container">
+                <h2 class="section-title">Voyez EventFlow en action</h2>
+                <p class="section-description">Découvrez comment créer et gérer un événement en quelques minutes</p>
+                <div class="demo-video">
+                    <div class="video-placeholder">
+                        <!-- Remplacer par une vraie vidéo ou capture d'écran -->
+                        <div class="placeholder-content">
+                            <span class="play-button"></span>
+                            <span class="placeholder-text">Vidéo de démonstration</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="pricing" class="pricing">
+            <div class="container">
+                <h2 class="section-title">Des tarifs simples et transparents</h2>
+                <p class="section-description">Choisissez la formule qui correspond le mieux à vos besoins</p>
+                <div class="pricing-cards">
+                    <div class="pricing-card">
+                        <div class="pricing-header">
+                            <h3 class="pricing-title">Gratuit</h3>
+                            <p class="pricing-price">0 €</p>
+                            <p class="pricing-period">pour toujours</p>
+                        </div>
+                        <div class="pricing-features">
+                            <ul class="feature-list">
+                                <li>1 événement actif</li>
+                                <li>Jusqu'à 20 participants</li>
+                                <li>Page d'événement basique</li>
+                                <li>QR codes pour check-in</li>
+                                <li>Inscriptions gratuites uniquement</li>
+                            </ul>
+                        </div>
+                        <div class="pricing-cta">
+                            <a href="./auth/register.html" class="btn btn-outline-primary">Commencer</a>
+                        </div>
+                    </div>
+                    <div class="pricing-card pricing-card-highlighted">
+                        <div class="pricing-badge">Populaire</div>
+                        <div class="pricing-header">
+                            <h3 class="pricing-title">Pro</h3>
+                            <p class="pricing-price">9 €</p>
+                            <p class="pricing-period">par mois</p>
+                        </div>
+                        <div class="pricing-features">
+                            <ul class="feature-list">
+                                <li>Événements illimités</li>
+                                <li>Participants illimités</li>
+                                <li>Page d'événement personnalisable</li>
+                                <li>QR codes et check-in</li>
+                                <li>Billets payants (+ commission 1%)</li>
+                                <li>Export CSV et rapports</li>
+                                <li>Emails de rappel automatiques</li>
+                            </ul>
+                        </div>
+                        <div class="pricing-cta">
+                            <a href="./auth/register.html?plan=pro" class="btn btn-primary">Choisir Pro</a>
+                        </div>
+                    </div>
+                    <div class="pricing-card">
+                        <div class="pricing-header">
+                            <h3 class="pricing-title">Event Pack</h3>
+                            <p class="pricing-price">3 €</p>
+                            <p class="pricing-period">par événement</p>
+                        </div>
+                        <div class="pricing-features">
+                            <ul class="feature-list">
+                                <li>1 événement</li>
+                                <li>Participants illimités</li>
+                                <li>Page d'événement personnalisable</li>
+                                <li>QR codes et check-in</li>
+                                <li>Billets payants (+ commission 2%)</li>
+                                <li>Export CSV basique</li>
+                            </ul>
+                        </div>
+                        <div class="pricing-cta">
+                            <a href="./auth/register.html?plan=pack" class="btn btn-outline-primary">Choisir Pack</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="faq" class="faq">
+            <div class="container">
+                <h2 class="section-title">Questions fréquentes</h2>
+                <div class="faq-list">
+                    <div class="faq-item">
+                        <h3 class="faq-question">Comment fonctionne la version gratuite ?</h3>
+                        <div class="faq-answer">
+                            <p>La version gratuite vous permet de créer un événement actif avec jusqu'à 20 participants. Vous bénéficiez de toutes les fonctionnalités de base comme la page d'événement, les inscriptions et les QR codes pour le check-in. C'est parfait pour tester la plateforme ou pour de petits événements occasionnels.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <h3 class="faq-question">Comment sont gérés les paiements ?</h3>
+                        <div class="faq-answer">
+                            <p>Nous utilisons Stripe pour traiter tous les paiements de manière sécurisée. Les fonds sont directement versés sur votre compte Stripe, moins notre commission (1% pour le plan Pro, 2% pour l'Event Pack). Vous pouvez ensuite transférer l'argent sur votre compte bancaire selon les délais de Stripe.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <h3 class="faq-question">Puis-je personnaliser l'apparence de ma page d'événement ?</h3>
+                        <div class="faq-answer">
+                            <p>Absolument ! Notre éditeur de page vous permet de personnaliser les couleurs, les polices, d'ajouter des sections comme un programme détaillé, une galerie d'images, des témoignages et bien plus encore. Avec le plan Pro, vous avez accès à encore plus d'options de personnalisation.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <h3 class="faq-question">Comment fonctionne le check-in le jour de l'événement ?</h3>
+                        <div class="faq-answer">
+                            <p>Le jour de votre événement, vous pouvez accéder à l'interface de check-in depuis votre smartphone ou tablette. Il vous suffit de scanner les QR codes présents sur les billets de vos participants pour valider leur présence en temps réel. Vous pouvez aussi effectuer un check-in manuel si nécessaire.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <h3 class="faq-question">Est-il possible d'obtenir des statistiques sur mon événement ?</h3>
+                        <div class="faq-answer">
+                            <p>Oui, tous les plans incluent des statistiques de base comme le nombre d'inscrits, le taux de remplissage et l'historique des check-ins. Le plan Pro offre des statistiques plus avancées, comme l'évolution des inscriptions dans le temps, le taux de conversion des visiteurs et des rapports détaillés après l'événement.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta-section">
+            <div class="container">
+                <div class="cta-content">
+                    <h2 class="cta-title">Prêt à simplifier la gestion de vos événements ?</h2>
+                    <p class="cta-description">Rejoignez des milliers d'organisateurs qui font confiance à EventFlow</p>
+                    <div class="cta-buttons">
+                        <a href="./auth/register.html" class="btn btn-primary btn-large">Commencer gratuitement</a>
+                        <a href="#demo" class="btn btn-outline btn-large">En savoir plus</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="index.html" class="footer-logo">EventFlow</a>
+                    <p class="footer-tagline">La plateforme simple pour réussir vos événements</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link" aria-label="Facebook">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M18 2H15C13.6739 2 12.4021 2.52678 11.4645 3.46447C10.5268 4.40215 10 5.67392 10 7V10H7V14H10V22H14V14H17L18 10H14V7C14 6.73478 14.1054 6.48043 14.2929 6.29289C14.4804 6.10536 14.7348 6 15 6H18V2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="social-link" aria-label="Twitter">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M23 3C22.0424 3.67548 20.9821 4.19211 19.86 4.53C19.2577 3.83751 18.4573 3.34669 17.567 3.12391C16.6767 2.90115 15.7395 2.9572 14.8821 3.28445C14.0247 3.61171 13.2884 4.1944 12.773 4.95372C12.2575 5.71303 11.9877 6.61234 12 7.53V8.53C10.2426 8.57557 8.50127 8.18581 6.93101 7.39545C5.36074 6.60508 4.01032 5.43864 3 4C3 4 -1 13 8 17C5.94053 18.398 3.48716 19.0989 1 19C10 24 21 19 21 7.5C20.9991 7.22145 20.9723 6.94359 20.92 6.67C21.9406 5.66349 22.6608 4.393 23 3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="social-link" aria-label="Instagram">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M17 2H7C4.23858 2 2 4.23858 2 7V17C2 19.7614 4.23858 22 7 22H17C19.7614 22 22 19.7614 22 17V7C22 4.23858 19.7614 2 17 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M16 11.3701C16.1234 12.2023 15.9813 13.0523 15.5938 13.7991C15.2063 14.5459 14.5932 15.1515 13.8416 15.5297C13.0901 15.9079 12.2385 16.0397 11.4078 15.906C10.5771 15.7723 9.80977 15.3801 9.21485 14.7852C8.61993 14.1903 8.22774 13.4229 8.09408 12.5923C7.96042 11.7616 8.09221 10.91 8.47043 10.1584C8.84865 9.40691 9.45427 8.7938 10.2011 8.4063C10.9479 8.0188 11.7979 7.87665 12.63 8.00006C13.4789 8.12594 14.2649 8.52152 14.8717 9.12836C15.4785 9.73521 15.8741 10.5211 16 11.3701Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M17.5 6.5H17.51" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h3 class="footer-title">Produit</h3>
+                    <ul class="footer-list">
+                        <li><a href="#features">Fonctionnalités</a></li>
+                        <li><a href="#pricing">Tarifs</a></li>
+                        <li><a href="#demo">Démonstration</a></li>
+                        <li><a href="#faq">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h3 class="footer-title">Ressources</h3>
+                    <ul class="footer-list">
+                        <li><a href="#">Centre d'aide</a></li>
+                        <li><a href="#">Tutoriels</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">API</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h3 class="footer-title">Légal</h3>
+                    <ul class="footer-list">
+                        <li><a href="#">Conditions d'utilisation</a></li>
+                        <li><a href="#">Politique de confidentialité</a></li>
+                        <li><a href="#">Mentions légales</a></li>
+                        <li><a href="#">RGPD</a></li>
+                    </ul>
+                </div>
+                <div class="footer-contact">
+                    <h3 class="footer-title">Contact</h3>
+                    <p>Des questions ? Contactez-nous</p>
+                    <a href="mailto:contact@eventflow.io" class="footer-email">contact@eventflow.io</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p class="copyright">&copy; 2025 EventFlow. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module" src="../js/index.js"></script>
+</body>
+</html>

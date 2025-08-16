@@ -1,0 +1,22 @@
+@import url('./variables.css');
+
+body.with-sidebar{display:flex;min-height:100vh}
+.app-sidebar{position:fixed;inset:0 auto 0 0;width:240px;background:var(--color-surface);border-right:1px solid var(--color-border-2);display:flex;flex-direction:column}
+.app-sidebar__brand{display:flex;align-items:center;gap:.6rem;padding:var(--space-4);font-weight:700;border-bottom:1px solid var(--color-border-2)}
+.app-sidebar__nav{padding:var(--space-3) var(--space-2);display:flex;flex-direction:column;gap:.25rem;flex:1 1 auto}
+.app-sidebar__nav a{display:flex;align-items:center;gap:.6rem;padding:.55rem .75rem;border-radius:8px;color:var(--color-text)}
+.app-sidebar__nav a:hover{background:var(--color-surface-2)}
+.app-sidebar__user{border-top:1px solid var(--color-border-2);padding:var(--space-3);display:flex;gap:.6rem;align-items:center}
+.app-sidebar__user .avatar{width:32px;height:32px;border-radius:999px;background:#ddd;object-fit:cover}
+.app-sidebar__user .u-meta{flex:1 1 auto;min-width:0}
+.app-sidebar__user .u-name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.app-sidebar__user .u-email{font-size:var(--fs-12);color:var(--color-text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.app-sidebar__user .u-actions{display:flex;gap:.4rem}
+.app-sidebar__user .btn{padding:.35rem .6rem;border-radius:8px;border:1px solid var(--color-border-2);background:var(--color-surface-2);color:var(--color-text);cursor:pointer}
+
+.app-main{margin-left:240px;flex:1 1 auto;display:block}
+@media(max-width: 900px){
+  .app-sidebar{position:fixed;transform:translateX(-100%);transition:transform .2s ease}
+  body.with-sidebar.nav-open .app-sidebar{transform:none}
+  .app-main{margin:0}
+}

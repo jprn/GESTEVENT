@@ -63,6 +63,15 @@ document.addEventListener('DOMContentLoaded', async ()=>{
       const { error } = await supa.from('profiles').upsert(updates, { onConflict: 'id' });
       if (error) throw error;
       profileFb.textContent = 'Profil mis à jour';
+      try{
+        const onboard = new URLSearchParams(location.search).get('onboard');
+        const hasName = (updates.full_name && updates.full_name.trim().length > 0);
+        if (onboard && hasName){
+          localStorage.setItem('dashboard_toast', 'Bienvenue ! Votre profil est prêt.');
+          window.location.href = './dashboard.html';
+          return;
+        }
+      }catch{}
     } catch (err) {
       profileFb.textContent = err.message || 'Mise à jour impossible';
     }

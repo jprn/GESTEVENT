@@ -3,50 +3,94 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>EventFlow · Inscription</title>
+  <title>Inscription à l'événement</title>
   <link rel="manifest" href="../manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="icon" href="../assets/logo.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="../css/auth.css">
+  <link rel="stylesheet" href="../css/public-register.css">
 </head>
 <body>
-  <div id="app" class="auth-container">
-    <div class="auth-card">
-      <a class="logo" href="./index.html">
-        <img src="../assets/logo.svg" alt="EventFlow" width="28" height="28">
-        <span class="logo-text">EventFlow</span>
-      </a>
-      <h1 class="auth-title">Créer un compte</h1>
-      <p class="auth-subtitle">Rejoignez-nous et commencez à organiser vos événements.</p>
+  <div class="container">
+    <header class="header">
+      <img src="../assets/logo.svg" width="28" height="28" alt="Logo"/>
+      <div class="brand">GESTEVENT</div>
+    </header>
 
-      <form id="signup-form" class="auth-form" novalidate>
-        <div class="form-group">
-          <label for="email" class="form-label">Email</label>
-          <input id="email" name="email" type="email" required class="form-control" autocomplete="email" />
-          <div class="error-message" id="email-error" aria-live="polite"></div>
-        </div>
-        <div class="form-group">
-          <div class="password-label-group">
-            <label for="password" class="form-label">Mot de passe</label>
+    <section id="event" class="card">
+      <div class="card__body">
+        <h1 id="event-title">—</h1>
+        <div class="event-meta">
+          <div class="meta-item">
+            <div class="label">Dates</div>
+            <div class="value" id="event-dates">—</div>
           </div>
-          <div class="password-input-group">
-            <input id="password" name="password" type="password" required class="form-control" autocomplete="new-password" />
+          <div class="meta-item">
+            <div class="label">Lieu</div>
+            <div class="value" id="event-location">—</div>
           </div>
-          <div class="error-message" id="password-error" aria-live="polite"></div>
+          <div class="meta-item" id="remaining-box" hidden>
+            <div class="label">Places restantes</div>
+            <div class="value" id="event-remaining">—</div>
+          </div>
+          <div class="meta-item">
+            <div class="label">Billet</div>
+            <div class="value" id="event-ticket">Gratuit</div>
+          </div>
         </div>
-        <button id="register-button" type="submit" class="btn btn-primary btn-full btn-large">
-          <span class="btn-text">S'inscrire</span>
-          <span class="btn-loader" aria-hidden="true"></span>
-        </button>
-      </form>
-      <div class="auth-links">Déjà un compte ? <a href="./login.html">Se connecter</a></div>
-      <div id="feedback" class="global-message is-info" aria-live="polite"></div>
-    </div>
+        <div id="state-box" class="state info" hidden></div>
+      </div>
+    </section>
+
+    <section id="form-section" class="card" style="margin-top: var(--space-4)">
+      <div class="card__body">
+        <h2>Inscription</h2>
+        <form id="public-register-form" class="form" novalidate>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="pr-firstname">Prénom</label>
+              <input class="form-control" id="pr-firstname" name="firstname" autocomplete="given-name" required>
+              <div class="error-message" id="err-firstname"></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="pr-lastname">Nom</label>
+              <input class="form-control" id="pr-lastname" name="lastname" autocomplete="family-name" required>
+              <div class="error-message" id="err-lastname"></div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="pr-email">Email</label>
+              <input class="form-control" id="pr-email" name="email" type="email" autocomplete="email" required>
+              <div class="error-message" id="err-email"></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="pr-phone">Téléphone (optionnel)</label>
+              <input class="form-control" id="pr-phone" name="phone" type="tel" autocomplete="tel">
+              <div class="error-message" id="err-phone"></div>
+            </div>
+          </div>
+          <div class="form-group checkbox">
+            <input id="pr-rgpd" type="checkbox" required>
+            <label for="pr-rgpd">J'accepte le traitement de mes données pour l'inscription (RGPD).</label>
+          </div>
+          <div class="actions">
+            <button id="pr-submit" class="btn" type="submit">
+              <span class="btn-text">S'inscrire gratuitement</span>
+              <span class="btn-loader" aria-hidden="true"></span>
+            </button>
+          </div>
+          <div id="pr-feedback" class="state info" hidden></div>
+        </form>
+      </div>
+    </section>
+
+    <div class="footer">© <span id="y"></span> GESTEVENT</div>
   </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="../js/utils/api.js" defer></script>
-  <script src="../js/auth/signup.js" defer></script>
+  <script src="../js/utils/api.js"></script>
+  <script src="../js/public/register.js" defer></script>
 </body>
 </html>

@@ -8,7 +8,31 @@
   <link rel="stylesheet" href="../css/login.css">
 </head>
 <body>
-  <div id="app"></div>
+  <div id="app" class="container">
+    <div class="card auth-card">
+      <h1 class="card__title">Se connecter</h1>
+      <form id="login-form" novalidate>
+        <div class="field">
+          <label for="email" class="field__label">Email</label>
+          <input id="email" name="email" type="email" required class="input" autocomplete="email" />
+          <div class="field__error" id="email-error" aria-live="polite"></div>
+        </div>
+        <div class="field">
+          <label for="password" class="field__label">Mot de passe</label>
+          <input id="password" name="password" type="password" required class="input" autocomplete="current-password" />
+          <div class="field__error" id="password-error" aria-live="polite"></div>
+        </div>
+        <div class="card__actions">
+          <button type="submit" class="btn">Connexion</button>
+          <a href="./reset-password.html" class="btn btn--ghost">Mot de passe oublié</a>
+        </div>
+      </form>
+      <div class="field__help">Pas de compte ? <a href="./signup.html">Créer un compte</a></div>
+      <div id="feedback" class="field__help" aria-live="polite"></div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/utils/api.js" defer></script>
   <script src="../js/auth/login.js" defer></script>
 </body>
 </html>

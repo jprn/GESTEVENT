@@ -1,2 +1,6 @@
 'use strict';
-document.addEventListener('DOMContentLoaded',()=>{ console.log('createEvent.js loaded'); });
+document.addEventListener('DOMContentLoaded', async ()=>{
+  await window.AuthGuard?.requireAuth({ requireVerified: true });
+  console.log('createEvent.js guarded');
+  // TODO: implement create event logic
+});

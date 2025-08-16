@@ -8,3 +8,6 @@ a:hover{text-decoration:underline}
 .container{max-width:var(--container);margin:0 auto;padding:0 var(--space-4)}
 
 #app{padding:var(--space-6)}
+
+/* Avatar preview */
+.avatar-preview{display:block;max-width:96px;max-height:96px;border-radius:50%;margin-bottom: var(--space-3);}

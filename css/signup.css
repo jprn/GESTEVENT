@@ -8,3 +8,6 @@ a:hover{text-decoration:underline}
 .container{max-width:var(--container);margin:0 auto;padding:0 var(--space-4)}
 
 #app{min-height:100vh;display:flex;align-items:center;justify-content:center}
+
+/* Shared layout for auth cards */
+.auth-card{max-width:480px;width:100%;margin:40px auto 0}

@@ -197,6 +197,26 @@
     pendingPayload = null;
   }
 
+  function openThankModal(){
+    const m = byId('thank-modal');
+    if (m) m.hidden = false;
+  }
+
+  function tryClosePage(){
+    // Tente de fermer l'onglet. Si le navigateur refuse (onglet non ouvert par script), fallback.
+    window.close();
+    // Fallback: retour arrière ou page blanche
+    setTimeout(()=>{
+      if (!document.hidden) {
+        if (window.history.length > 1) {
+          history.back();
+        } else {
+          location.replace('about:blank');
+        }
+      }
+    }, 500);
+  }
+
   async function submitRegistration(payload){
     setLoading(true);
     setFeedback('', 'info');
@@ -208,6 +228,9 @@
       const form = byId('public-register-form');
       form?.querySelectorAll('input,button').forEach(el=>el.disabled = true);
       closeConfirmModal();
+      openThankModal();
+      // Fermeture automatique après un court délai
+      setTimeout(tryClosePage, 2500);
     }catch(err){
       console.error(err);
       const msg = err?.message || 'Inscription impossible';
@@ -254,5 +277,12 @@
     overlay?.addEventListener('click', closeConfirmModal);
     btnCancel?.addEventListener('click', closeConfirmModal);
     btnConfirm?.addEventListener('click', ()=>{ if (pendingPayload) submitRegistration(pendingPayload); });
+
+    // Thank modal events
+    const tModal = byId('thank-modal');
+    const tOverlay = tModal?.querySelector('.modal__overlay');
+    const tClose = byId('tm-close');
+    tOverlay?.addEventListener('click', tryClosePage);
+    tClose?.addEventListener('click', tryClosePage);
   });
 })();

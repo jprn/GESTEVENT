@@ -62,7 +62,7 @@
     try{
       const { data, error } = await supa
         .from('events')
-        .select('title, location_text, starts_at, ends_at, ticket_type, price_cents, is_open, show_remaining, capacity, sales_from, sales_until, status, slug, remaining')
+        .select('title, description_html, location_text, starts_at, ends_at, ticket_type, price_cents, is_open, show_remaining, capacity, sales_from, sales_until, status, slug, remaining')
         .eq('slug', slug)
         .eq('status', 'published')
         .maybeSingle();
@@ -73,10 +73,21 @@
       byId('event-title').textContent = data.title || 'Événement';
       byId('event-location').textContent = data.location_text || '—';
       byId('event-dates').textContent = fmtDateRange(data.starts_at, data.ends_at);
+      // Description
+      const descBox = byId('event-description');
+      if (data.description_html){
+        descBox.innerHTML = data.description_html;
+        descBox.hidden = false;
+      } else { descBox.hidden = true; }
 
       const isPaid = data.ticket_type === 'paid';
       const price = typeof data.price_cents === 'number' ? (data.price_cents/100).toFixed(2).replace('.', ',')+ ' €' : '—';
       byId('event-ticket').textContent = isPaid ? `Payant (${price})` : 'Gratuit';
+      if (isPaid){
+        setState('Billets payants: les inscriptions en ligne ne sont pas encore disponibles.', 'warn');
+        disableForm();
+        return; // Stop here since Stripe n’est pas géré pour le moment
+      }
 
       // Remaining (optional if available)
       const remainingBox = byId('remaining-box');

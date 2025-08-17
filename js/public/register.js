@@ -93,6 +93,7 @@
       const remainingBox = byId('remaining-box');
       const remainingEl = byId('event-remaining');
       const showRemaining = !!data.show_remaining;
+      let remainingVal = null;
       if (showRemaining && typeof data.capacity === 'number' && data.capacity > 0){
         try{
           const { count } = await supa
@@ -102,6 +103,7 @@
             .eq('status', 'confirmed');
           if (typeof count === 'number'){
             const remaining = Math.max(0, data.capacity - count);
+            remainingVal = remaining;
             remainingEl.textContent = String(remaining);
             remainingBox.hidden = false;
           } else {
@@ -124,7 +126,7 @@
       else if (!isOpenFlag) closedMsg = "Inscriptions fermées.";
       else if (!salesFromOk) closedMsg = "Inscriptions pas encore ouvertes.";
       else if (!salesUntilOk) closedMsg = "Inscriptions clôturées.";
-      else if (showRemaining && hasRemaining && data.remaining <= 0) closedMsg = "Complet.";
+      else if (typeof remainingVal === 'number' && remainingVal <= 0) closedMsg = "Complet.";
 
       const form = byId('public-register-form');
       if (closedMsg){

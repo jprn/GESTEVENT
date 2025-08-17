@@ -8,7 +8,7 @@ function toast(msg, type='info'){
   // reuse dashboard toast if present; fallback to alert
   const t = document.getElementById('toast');
   if (t){ t.textContent = msg; t.dataset.type = type; t.hidden = false; setTimeout(()=>t.hidden=true, 3000); }
-  else { console.log(`[${type}]`, msg); }
+  else { alert(msg); }
 }
 
 function slugify(str){
@@ -210,6 +210,9 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     // Comportement attendu: lorsqu'on passe à la billetterie, on crée/actualise un brouillon côté Supabase
     // Ceci garantit l'existence de l'événement (status = 'draft') avant la publication
     (async ()=>{
+      const btn = qs('#nextStep');
+      const prevDisabled = btn.disabled;
+      btn.disabled = true; // éviter les doubles clics pendant la sauvegarde
       try{
         // Sauvegarde en brouillon à chaque passage par "Suivant"
         const row = await upsertEvent('draft');
@@ -219,7 +222,12 @@ document.addEventListener('DOMContentLoaded', async ()=>{
           url.searchParams.set('e', row.id);
           history.replaceState({}, '', url);
         }
-        toast(currentStep === 1 ? 'Brouillon enregistré' : 'Brouillon mis à jour');
+        if (currentStep === 1){
+          toast('Brouillon enregistré');
+        } else {
+          // Déjà sur la billetterie (dernière étape)
+          toast('Brouillon mis à jour. Utilisez "Publier" pour finaliser.');
+        }
       }catch(err){
         console.error('Erreur sauvegarde brouillon via "Suivant"', err);
         toast('Erreur enregistrement brouillon', 'error');
@@ -229,6 +237,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
       // Passage à l'étape suivante (1 -> 2). Si déjà en étape 2, on reste mais on a au moins sauvegardé.
       currentStep = Math.min(2, currentStep+1);
       setStep(currentStep);
+      btn.disabled = prevDisabled; // rétablir l'état initial du bouton
     })();
   });
 

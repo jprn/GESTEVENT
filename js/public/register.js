@@ -83,10 +83,11 @@
       const isPaid = data.ticket_type === 'paid';
       const price = typeof data.price_cents === 'number' ? (data.price_cents/100).toFixed(2).replace('.', ',')+ ' €' : '—';
       byId('event-ticket').textContent = isPaid ? `Payant (${price})` : 'Gratuit';
+      // Autoriser l'inscription même si payant, avec message informatif
       if (isPaid){
-        setState('Billets payants: les inscriptions en ligne ne sont pas encore disponibles.', 'warn');
-        disableForm();
-        return; // Stop here since Stripe n’est pas géré pour le moment
+        setState('Billet payant: la réservation est enregistrée sans paiement. Vous recevrez les instructions par email.', 'info');
+        const btn = byId('pr-submit');
+        if (btn) btn.textContent = 'Réserver un billet';
       }
 
       // Remaining (optionnel)

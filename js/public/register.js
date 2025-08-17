@@ -4,6 +4,7 @@
   // State
   let currentEvent = null; // données de l'événement chargé
   let pendingPayload = null; // payload en attente de confirmation
+  let modalOpen = false; // évite doubles ouvertures
   function byId(id){ return document.getElementById(id); }
   function fmtDateRange(startISO, endISO){
     if (!startISO && !endISO) return '—';
@@ -72,6 +73,7 @@
       if (error) throw error;
       if (!data){ setState("Événement introuvable ou non publié.", 'error'); disableForm(); return; }
       currentEvent = data;
+      console.debug('[register] event loaded, ticket_type=', data.ticket_type);
 
       // Fill basics
       byId('event-title').textContent = data.title || 'Événement';
@@ -84,7 +86,7 @@
         descBox.hidden = false;
       } else { descBox.hidden = true; }
 
-      const isPaid = data.ticket_type === 'paid';
+      const isPaid = String(data.ticket_type || '').toLowerCase() === 'paid';
       const price = typeof data.price_cents === 'number' ? (data.price_cents/100).toFixed(2).replace('.', ',')+ ' €' : '—';
       byId('event-ticket').textContent = isPaid ? `Payant (${price})` : 'Gratuit';
       // Autoriser l'inscription même si payant, avec message informatif
@@ -181,6 +183,7 @@
     const modal = byId('confirm-modal');
     if (!modal) return submitRegistration(payload); // fallback si pas de modal
     pendingPayload = payload;
+    modalOpen = true;
     byId('cm-event-title').textContent = currentEvent?.title || '—';
     byId('cm-fullname').textContent = payload.full_name || '—';
     byId('cm-email').textContent = payload.email || '—';
@@ -188,7 +191,7 @@
     const price = (typeof currentEvent?.price_cents === 'number')
       ? (currentEvent.price_cents/100).toFixed(2).replace('.', ',') + ' €' : '—';
     byId('cm-price').textContent = price;
-    priceLine.hidden = !(currentEvent && currentEvent.ticket_type === 'paid');
+    priceLine.hidden = !(currentEvent && String(currentEvent.ticket_type||'').toLowerCase() === 'paid');
     modal.hidden = false;
     // Mise en avant
     const content = modal.querySelector('.modal__content');
@@ -201,6 +204,7 @@
     const modal = byId('confirm-modal');
     if (modal) modal.hidden = true;
     pendingPayload = null;
+    modalOpen = false;
   }
 
   function openThankModal(){
@@ -262,8 +266,11 @@
     };
 
     // Si billet payant, ouvrir le modal AVANT validation (Option B)
-    if (currentEvent && currentEvent.ticket_type === 'paid'){
-      openConfirmModal(payload);
+    if (currentEvent && String(currentEvent.ticket_type||'').toLowerCase() === 'paid'){
+      if (!modalOpen){
+        console.debug('[register] paid flow: opening confirm modal');
+        openConfirmModal(payload);
+      }
       return;
     }
     // Gratuit → valider puis soumettre
@@ -298,6 +305,28 @@
         client_ip: null,
       };
       submitRegistration(payload);
+    });
+    // Extra safety: handle direct click on submit for paid to ensure modal shows
+    const submitBtn = byId('pr-submit');
+    submitBtn?.addEventListener('click', (ev)=>{
+      if (currentEvent && String(currentEvent.ticket_type||'').toLowerCase() === 'paid'){
+        // Ouvrir explicitement le modal et empêcher la soumission native si nécessaire
+        ev.preventDefault();
+        if (!modalOpen){
+          const form = byId('public-register-form');
+          const slug = form?.dataset?.slug || new URLSearchParams(location.search).get('e');
+          const firstname = byId('pr-firstname').value.trim();
+          const lastname = byId('pr-lastname').value.trim();
+          const payload = {
+            slug,
+            full_name: `${firstname} ${lastname}`.trim(),
+            email: byId('pr-email').value.trim(),
+            phone: byId('pr-phone').value.trim() || null,
+            client_ip: null,
+          };
+          openConfirmModal(payload);
+        }
+      }
     });
     // Thank modal events
     const tModal = byId('thank-modal');

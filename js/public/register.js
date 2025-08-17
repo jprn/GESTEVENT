@@ -62,7 +62,7 @@
     try{
       const { data, error } = await supa
         .from('events')
-        .select('title, description_html, location_text, starts_at, ends_at, ticket_type, price_cents, is_open, show_remaining, capacity, sales_from, sales_until, status, slug, remaining')
+        .select('id, title, description_html, location_text, starts_at, ends_at, ticket_type, price_cents, is_open, show_remaining, capacity, sales_from, sales_until, status, slug')
         .eq('slug', slug)
         .eq('status', 'published')
         .maybeSingle();
@@ -89,14 +89,25 @@
         return; // Stop here since Stripe n’est pas géré pour le moment
       }
 
-      // Remaining (optional if available)
+      // Remaining (optionnel)
       const remainingBox = byId('remaining-box');
       const remainingEl = byId('event-remaining');
       const showRemaining = !!data.show_remaining;
-      const hasRemaining = typeof data.remaining === 'number';
-      if (showRemaining && hasRemaining){
-        remainingEl.textContent = String(data.remaining);
-        remainingBox.hidden = false;
+      if (showRemaining && typeof data.capacity === 'number' && data.capacity > 0){
+        try{
+          const { count } = await supa
+            .from('participants')
+            .select('id', { head: true, count: 'exact' })
+            .eq('event_id', data.id)
+            .eq('status', 'confirmed');
+          if (typeof count === 'number'){
+            const remaining = Math.max(0, data.capacity - count);
+            remainingEl.textContent = String(remaining);
+            remainingBox.hidden = false;
+          } else {
+            remainingBox.hidden = true;
+          }
+        }catch{ remainingBox.hidden = true; }
       } else {
         remainingBox.hidden = true;
       }

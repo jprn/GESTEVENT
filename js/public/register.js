@@ -193,6 +193,7 @@
     byId('cm-price').textContent = price;
     priceLine.hidden = !(currentEvent && String(currentEvent.ticket_type||'').toLowerCase() === 'paid');
     modal.hidden = false;
+    setFeedback('Veuillez confirmer votre réservation dans la fenêtre.', 'info');
     // Mise en avant
     const content = modal.querySelector('.modal__content');
     content?.setAttribute('tabindex', '-1');
@@ -271,6 +272,14 @@
         console.debug('[register] paid flow: opening confirm modal');
         openConfirmModal(payload);
       }
+      return;
+    }
+    // Fallback: si currentEvent pas encore prêt mais bouton indique "Réserver un billet", ouvrir quand même le modal
+    const btn = byId('pr-submit');
+    const label = btn?.querySelector('.btn-text')?.textContent?.trim().toLowerCase();
+    if (!currentEvent && label && label.includes('réserver un billet')){
+      console.debug('[register] fallback paid flow via button label');
+      openConfirmModal(payload);
       return;
     }
     // Gratuit → valider puis soumettre

@@ -4,11 +4,17 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import QRCode from "npm:qrcode@1.5.3";
 
 // Helpers
+function corsHeaders() {
+  return {
+    "content-type": "application/json",
+    "access-control-allow-origin": "*",
+    "access-control-allow-headers": "authorization, x-client-info, apikey, content-type",
+    "access-control-allow-methods": "POST, OPTIONS",
+  } as Record<string, string>;
+}
+
 function json(res: any, status = 200) {
-  return new Response(JSON.stringify(res), {
-    status,
-    headers: { "content-type": "application/json" },
-  });
+  return new Response(JSON.stringify(res), { status, headers: corsHeaders() });
 }
 
 function badRequest(msg: string) { return json({ error: msg }, 400); }
@@ -30,6 +36,10 @@ async function sha256Hex(input: string): Promise<string> {
 }
 
 serve(async (req) => {
+  // CORS preflight
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders() });
+  }
   if (req.method !== 'POST') return badRequest('POST only');
 
   // Env
@@ -56,13 +66,13 @@ serve(async (req) => {
   try {
     if (client_ip) {
       await supa.from('rate_limits_public_register').insert({ ip: client_ip });
-      const { data: rl, error: rlErr } = await supa
+      const { count: rlCount, error: rlErr } = await supa
         .from('rate_limits_public_register')
         .select('id', { count: 'exact', head: true })
         .gte('created_at', new Date(Date.now()-60_000).toISOString())
         .eq('ip', client_ip);
       if (rlErr) throw rlErr;
-      if ((rl as any)?.length === 0 && typeof rl?.count === 'number' && rl.count > 5) return tooMany('Trop de tentatives, réessayez plus tard');
+      if (typeof rlCount === 'number' && rlCount > 5) return tooMany('Trop de tentatives, réessayez plus tard');
     }
   } catch { /* ignore RL if table missing */ }
 
@@ -92,14 +102,13 @@ serve(async (req) => {
 
   // Remaining capacity check (if capacity set)
   if (evt.capacity && evt.capacity > 0) {
-    const { data: agg, error: aggErr } = await supa
+    const { count: partCount, error: aggErr } = await supa
       .from('participants')
       .select('id', { count: 'exact', head: true })
       .eq('event_id', evt.id)
       .eq('status', 'confirmed');
     if (aggErr) return serverError('Erreur comptage');
-    // @ts-ignore count exposed via head:true
-    if (agg && typeof agg.count === 'number' && agg.count >= evt.capacity) return forbidden('Complet');
+    if (typeof partCount === 'number' && partCount >= evt.capacity) return forbidden('Complet');
   }
 
   // Create participant: rely on a unique constraint (event_id, email_lower) to avoid duplicates under race
@@ -117,9 +126,12 @@ serve(async (req) => {
     .select('id')
     .single();
   if (insErr) {
-    // Handle conflict
-    if (String(insErr.message||'').toLowerCase().includes('duplicate'))
+    // Handle conflict (unique violation)
+    const code = (insErr as any)?.code;
+    const msg = String((insErr as any)?.message || '').toLowerCase();
+    if (code === '23505' || msg.includes('duplicate') || msg.includes('unique')) {
       return forbidden('Déjà inscrit pour cet événement');
+    }
     return serverError('Impossible de créer le participant');
   }
   const participantId = inserted.id;

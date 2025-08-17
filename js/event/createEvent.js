@@ -1,6 +1,7 @@
 'use strict';
 
 const STORAGE_KEY = 'ce_draft_v1';
+let editingPublished = false; // défini lors du chargement d'un événement existant
 
 function qs(sel){ return document.querySelector(sel); }
 
@@ -166,29 +167,41 @@ async function upsertEvent(status){
   const data = getFormData();
   const supa = window.AppAPI.getClient();
   const user = await window.AppAPI.getUser();
-  const payload = {
-    owner_id: user.id,
-    title: data.title,
-    description_html: data.description_html,
-    location_text: data.location_text,
-    starts_at: data.starts_at || null,
-    ends_at: data.ends_at || null,
-    status: status,
-    ticket_type: data.ticket_type,
-    price_cents: data.ticket_type === 'paid' ? data.price_cents : 0,
-    capacity: data.qty_total,
-    max_per_user: data.max_per_user,
-    sales_from: data.sales_from,
-    sales_until: data.sales_until,
-    is_open: data.is_open,
-    show_remaining: data.show_remaining,
-  };
-
   // detect edit mode via query param e
   const params = new URLSearchParams(location.search);
   const editingId = params.get('e');
 
-  if (status === 'published'){
+  // Si on édite un événement déjà publié, on limite les colonnes mises à jour
+  let payload;
+  if (editingId && editingPublished){
+    payload = {
+      // owner_id inchangé
+      status: 'published',
+      capacity: data.qty_total,
+      sales_from: data.sales_from,
+      sales_until: data.sales_until,
+    };
+  } else {
+    payload = {
+      owner_id: user.id,
+      title: data.title,
+      description_html: data.description_html,
+      location_text: data.location_text,
+      starts_at: data.starts_at || null,
+      ends_at: data.ends_at || null,
+      status: status,
+      ticket_type: data.ticket_type,
+      price_cents: data.ticket_type === 'paid' ? data.price_cents : 0,
+      capacity: data.qty_total,
+      max_per_user: data.max_per_user,
+      sales_from: data.sales_from,
+      sales_until: data.sales_until,
+      is_open: data.is_open,
+      show_remaining: data.show_remaining,
+    };
+  }
+
+  if (!editingPublished && status === 'published'){
     const base = slugify(data.title);
     const finalSlug = await ensureUniqueSlug(base);
     payload.slug = finalSlug;
@@ -270,8 +283,8 @@ document.addEventListener('DOMContentLoaded', async ()=>{
       const prevDisabled = btn.disabled;
       btn.disabled = true; // éviter les doubles clics pendant la sauvegarde
       try{
-        // Sauvegarde en brouillon à chaque passage par "Suivant"
-        const row = await upsertEvent('draft');
+        // Sauvegarde à chaque passage par "Suivant"
+        const row = await upsertEvent(editingPublished ? 'published' : 'draft');
         // Si un nouvel ID est retourné (création), on le fixe dans l'URL pour passer en mode édition
         if (row?.id){
           const url = new URL(location.href);
@@ -308,17 +321,19 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     const v1 = validateStep(1); // au moins step1 valide pour brouillon propre
     if (!v1.ok){ toast(v1.msg, 'error'); return; }
     try{
-      const row = await upsertEvent('draft');
-      toast('Brouillon enregistré');
+      const row = await upsertEvent(editingPublished ? 'published' : 'draft');
+      toast(editingPublished ? 'Modifications enregistrées' : 'Brouillon enregistré');
       if (row?.id){
         const url = new URL(location.href);
         url.searchParams.set('e', row.id);
         history.replaceState({}, '', url);
       }
-      // Comportement demandé: vider les champs après enregistrement brouillon
-      clearFormAndState();
-      // revenir au step 1 visuellement
-      currentStep = 1; setStep(currentStep);
+      if (!editingPublished){
+        // Comportement demandé: vider les champs après enregistrement brouillon
+        clearFormAndState();
+        // revenir au step 1 visuellement
+        currentStep = 1; setStep(currentStep);
+      }
     }catch(err){ console.error(err); toast('Erreur enregistrement brouillon', 'error'); }
   });
 
@@ -376,10 +391,11 @@ document.addEventListener('DOMContentLoaded', async ()=>{
       const supa = window.AppAPI.getClient();
       const { data, error } = await supa
         .from('events')
-        .select('title, description_html, location_text, starts_at, ends_at, ticket_type, price_cents, capacity, max_per_user, sales_from, sales_until, is_open, show_remaining')
+        .select('status, title, description_html, location_text, starts_at, ends_at, ticket_type, price_cents, capacity, max_per_user, sales_from, sales_until, is_open, show_remaining')
         .eq('id', editingId)
         .single();
       if (error) throw error;
+      editingPublished = (data?.status || '').toLowerCase() === 'published';
       const mapped = {
         title: data?.title || '',
         description_html: data?.description_html || '',
@@ -398,6 +414,20 @@ document.addEventListener('DOMContentLoaded', async ()=>{
       setFormData(mapped);
       // reflect ticket_type -> price enable/disable
       qs('#price_cents').disabled = (qs('#ticket_type').value !== 'paid');
+
+      // Si publié: verrouiller les champs non autorisés et adapter l'UI
+      if (editingPublished){
+        // Désactiver tous les champs sauf qty_total, sales_from, sales_until
+        ['#title','#location_text','#starts_at','#ends_at','#ticket_type','#price_cents','#max_per_user','#is_open','#show_remaining']
+          .forEach(sel=>{ const el = qs(sel); if (el) el.disabled = true; });
+        const editor = qs('#description'); if (editor) editor.setAttribute('contenteditable','false');
+        // Boutons: pas de publication ni de "suivant"; garder un bouton d'enregistrement
+        const publishBtn = qs('#publish'); if (publishBtn) publishBtn.hidden = true;
+        const nextBtn = qs('#nextStep'); if (nextBtn) nextBtn.hidden = true;
+        const saveBtn = qs('#saveDraft'); if (saveBtn) saveBtn.textContent = 'Enregistrer';
+        // Rester en étape 2 pour clarté (billetterie)
+        currentStep = 2; setStep(currentStep);
+      }
     }
   }catch(err){ console.warn('Chargement de l\'événement existant échoué', err); }
 });

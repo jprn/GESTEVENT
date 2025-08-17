@@ -133,6 +133,7 @@ function openEventModal(e){
   const sales = `${fmtDate(e.sales_from)} → ${fmtDate(e.sales_until)}`;
   const salesOpen = e.is_open === true ? 'Ouvert' : (e.is_open === false ? 'Fermé' : '—');
   const remaining = (typeof e.capacity === 'number' && typeof e.registered_count === 'number') ? Math.max(0, e.capacity - e.registered_count) : null;
+  const publicUrl = (s === 'published' && e.slug) ? `${location.origin}/register.html?e=${encodeURIComponent(e.slug)}` : '';
   body.innerHTML = `
     <h3>${e.title || 'Sans titre'} ${status}</h3>
     <div class="meta">${fmtDate(e.starts_at)} → ${fmtDate(e.ends_at)}</div>
@@ -147,6 +148,12 @@ function openEventModal(e){
       <div class="meta">Type: ${isPaid ? 'Payant' : 'Gratuit'}${isPaid ? ` · Prix: ${price}` : ''}</div>
       <div class="meta">Quota par utilisateur: ${e.max_per_user ?? '—'}${e.show_remaining && remaining !== null ? ` · Restants: ${remaining}` : ''}</div>
       <div class="meta">Période de vente: ${sales} · Statut: ${s==='draft'?'Brouillon':'Publié'}</div>
+    </div>
+    <div class="modal__desc">
+      <strong>Lien public</strong>
+      ${publicUrl
+        ? `<div class="meta"><a href="#" id="copyPublicLink" data-url="${publicUrl}" class="pub-link" title="Cliquer pour copier">${publicUrl}</a></div>`
+        : `<div class="meta">Disponible après publication</div>`}
     </div>
     <div class="modal__actions">
       <a class="btn" href="./create-event.html?e=${encodeURIComponent(e.id)}">Modifier</a>
@@ -175,6 +182,26 @@ function openEventModal(e){
       document.body.style.overflow = 'hidden';
       pm.dataset.eventId = e.id;
       pm.dataset.eventTitle = e.title || '';
+    });
+  }
+  // Copier le lien public au clic
+  const copyLink = qs('#copyPublicLink');
+  if (copyLink){
+    copyLink.addEventListener('click', async (ev)=>{
+      ev.preventDefault();
+      const url = copyLink.dataset.url;
+      try{
+        await navigator.clipboard.writeText(url);
+        toast('Lien copié dans le presse‑papiers');
+      }catch(err){
+        console.warn('Clipboard API échouée', err);
+        // Fallback
+        const ta = document.createElement('textarea');
+        ta.value = url; document.body.appendChild(ta); ta.select();
+        try{ document.execCommand('copy'); toast('Lien copié dans le presse‑papiers'); }
+        catch{ toast('Impossible de copier le lien', 'error'); }
+        finally{ document.body.removeChild(ta); }
+      }
     });
   }
   m.removeAttribute('hidden');

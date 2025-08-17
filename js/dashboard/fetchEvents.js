@@ -5,6 +5,13 @@ const PAGE_SIZE = 6;
 
 // UI helpers
 function qs(sel){ return document.querySelector(sel); }
+
+function getStatus(event){
+  const s = (event.status || '').toLowerCase();
+  if (s === 'draft' || s === 'published') return s;
+  // Fallback: si un slug public existe on considère publié, sinon brouillon
+  return event.slug ? 'published' : 'draft';
+}
 function show(el){ el?.removeAttribute('hidden'); }
 function hide(el){ el?.setAttribute('hidden',''); }
 function setText(sel, value){ const el = qs(sel); if (el) el.textContent = value; }
@@ -84,13 +91,14 @@ function renderCards(events, plan){
   if (!grid) return;
   grid.innerHTML = '';
   for (const e of events){
+    const s = getStatus(e);
     const p = percent(e.registered_count||0, e.capacity||0);
     const card = document.createElement('article');
-    const statusClass = e.status === 'draft' ? 'card--draft' : (e.status === 'published' ? 'card--published' : '');
+    const statusClass = s === 'draft' ? 'card--draft' : (s === 'published' ? 'card--published' : '');
     card.className = `card card--compact ${statusClass}`.trim();
     let statusBadge = '';
-    if (e.status === 'draft') statusBadge = '<span class="badge badge--draft">Brouillon</span>';
-    else if (e.status === 'published') statusBadge = '<span class="badge badge--published">Publié</span>';
+    if (s === 'draft') statusBadge = '<span class="badge badge--draft">Brouillon</span>';
+    else if (s === 'published') statusBadge = '<span class="badge badge--published">Publié</span>';
 
     const desc = clip(stripHtml(e.description_html || ''));
     card.innerHTML = `
@@ -120,7 +128,8 @@ function openEventModal(e){
   const m = qs('#event-modal');
   const body = qs('#event-modal .modal__body');
   if (!m || !body) return;
-  const status = e.status ? `<span class="badge ${e.status==='draft'?'badge--draft':'badge--published'}">${e.status==='draft'?'Brouillon':'Publié'}</span>` : '';
+  const s = getStatus(e);
+  const status = `<span class="badge ${s==='draft'?'badge--draft':'badge--published'}">${s==='draft'?'Brouillon':'Publié'}</span>`;
   const isPaid = e.ticket_type === 'paid';
   const price = typeof e.price_cents === 'number' ? eur(e.price_cents) : '—';
   const sales = `${fmtDate(e.sales_from)} → ${fmtDate(e.sales_until)}`;
@@ -139,13 +148,12 @@ function openEventModal(e){
       <strong>Billetterie</strong>
       <div class="meta">Type: ${isPaid ? 'Payant' : 'Gratuit'}${isPaid ? ` · Prix: ${price}` : ''}</div>
       <div class="meta">Quota par utilisateur: ${e.max_per_user ?? '—'}${e.show_remaining && remaining !== null ? ` · Restants: ${remaining}` : ''}</div>
-      <div class="meta">Période de vente: ${sales} · Statut: ${salesOpen}</div>
+      <div class="meta">Période de vente: ${sales} · Statut: ${s==='draft'?'Brouillon':'Publié'}</div>
     </div>
     <div class="modal__actions">
       <a class="btn" href="./create-event.html?e=${encodeURIComponent(e.id)}">Modifier</a>
       <a class="btn btn--ghost" href="./participants.html?e=${encodeURIComponent(e.id)}">Participants</a>
-      ${e.status !== 'published' ? `<button type="button" class="btn" id="dashPublishBtn">Publier</button>` : ''}
-    </div>
+      ${s !== 'published' ? `<button type="button" class="btn" id="dashPublishBtn">Publier</button>` : ''}
   `;
   // Bouton publier (dashboard) -> ouvrir modal de confirmation
   const dashBtn = qs('#dashPublishBtn');

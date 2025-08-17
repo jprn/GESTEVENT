@@ -7,10 +7,17 @@ const PAGE_SIZE = 6;
 function qs(sel){ return document.querySelector(sel); }
 
 function getStatus(event){
-  const s = (event.status || '').toLowerCase();
-  if (s === 'draft' || s === 'published') return s;
-  // Fallback: si un slug public existe on considère publié, sinon brouillon
-  return event.slug ? 'published' : 'draft';
+  // 1) Chaîne explicite
+  const s = (event.status ?? '').toString().toLowerCase();
+  if (s === 'published' || s === 'public') return 'published';
+  if (s === 'draft' || s === 'private') return 'draft';
+  // 2) Booléen is_published
+  if (event.is_published === true) return 'published';
+  if (event.is_published === false) return 'draft';
+  // 3) Timestamp published_at
+  if (event.published_at) return 'published';
+  // 4) Par défaut: brouillon (ne pas inférer via slug)
+  return 'draft';
 }
 function show(el){ el?.removeAttribute('hidden'); }
 function hide(el){ el?.setAttribute('hidden',''); }
@@ -212,7 +219,7 @@ async function fetchEvents(page){
   try{
     const { data, error, count } = await supa
       .from('events')
-      .select('id,title,slug,status,description_html,starts_at,ends_at,capacity,registered_count,checkin_count,revenue_cents,ticket_type,price_cents,max_per_user,sales_from,sales_until,is_open,show_remaining', { count: 'exact' })
+      .select('id,title,slug,status,is_published,published_at,description_html,starts_at,ends_at,capacity,registered_count,checkin_count,revenue_cents,ticket_type,price_cents,max_per_user,sales_from,sales_until,is_open,show_remaining', { count: 'exact' })
       .eq('owner_id', user.id)
       .order('starts_at', { ascending: false })
       .range(from, to);

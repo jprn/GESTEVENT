@@ -91,7 +91,8 @@
       if (isPaid){
         setState('Billet payant: la réservation est enregistrée sans paiement. Vous recevrez les instructions par email.', 'info');
         const btn = byId('pr-submit');
-        if (btn) btn.textContent = 'Réserver un billet';
+        const spanText = btn?.querySelector('.btn-text');
+        if (spanText) spanText.textContent = 'Réserver un billet';
       }
 
       // Remaining (optionnel)
@@ -189,6 +190,11 @@
     byId('cm-price').textContent = price;
     priceLine.hidden = !(currentEvent && currentEvent.ticket_type === 'paid');
     modal.hidden = false;
+    // Mise en avant
+    const content = modal.querySelector('.modal__content');
+    content?.setAttribute('tabindex', '-1');
+    content?.focus();
+    content?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
   function closeConfirmModal(){

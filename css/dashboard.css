@@ -80,6 +80,7 @@ a:hover{text-decoration:underline}
 
 /* Modal */
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;padding:2rem;z-index:1000}
+.modal[hidden]{display:none !important}
 .modal__dialog{background:var(--color-surface);border:1px solid var(--color-border-2);border-radius:16px;max-width:min(760px, 92vw);width:100%;box-shadow:0 16px 48px rgba(0,0,0,.2);position:relative}
 .modal__body{padding:clamp(16px,3vw,24px)}
 .modal__body h3{margin:.25rem 0 .5rem;font-size:clamp(18px,2.5vw,22px)}

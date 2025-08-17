@@ -231,6 +231,8 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   qs('#event-modal .modal__close')?.addEventListener('click', closeEventModal);
   qs('#event-modal')?.addEventListener('click', (e)=>{ if (e.target.id === 'event-modal') closeEventModal(); });
   document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') closeEventModal(); });
+  // Sécurité: s'assurer que la modal est fermée au chargement
+  try{ closeEventModal(); }catch{}
   await loadPage(1);
   // Show success toast if coming from wizard
   try{

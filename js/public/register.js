@@ -247,7 +247,6 @@
 
   async function onSubmit(e){
     e.preventDefault();
-    if (!validate()) return;
     const form = e.currentTarget;
     const slug = form?.dataset?.slug || new URLSearchParams(location.search).get('e');
     if (!slug){ setFeedback('Slug manquant.', 'error'); return; }
@@ -262,12 +261,13 @@
       client_ip: null, // laissé à l’EF qui lira X-Forwarded-For
     };
 
-    // Si billet payant, afficher le modal de confirmation avant de soumettre
+    // Si billet payant, ouvrir le modal AVANT validation (Option B)
     if (currentEvent && currentEvent.ticket_type === 'paid'){
       openConfirmModal(payload);
       return;
     }
-    // Gratuit → soumission directe
+    // Gratuit → valider puis soumettre
+    if (!validate()) return;
     await submitRegistration(payload);
   }
 
@@ -282,8 +282,23 @@
     const btnConfirm = byId('cm-confirm');
     overlay?.addEventListener('click', closeConfirmModal);
     btnCancel?.addEventListener('click', closeConfirmModal);
-    btnConfirm?.addEventListener('click', ()=>{ if (pendingPayload) submitRegistration(pendingPayload); });
-
+    btnConfirm?.addEventListener('click', ()=>{
+      // Valider à la confirmation
+      if (!validate()) return;
+      // Reconstruire payload avec valeurs éventuellement modifiées
+      const form = byId('public-register-form');
+      const slug = form?.dataset?.slug || new URLSearchParams(location.search).get('e');
+      const firstname = byId('pr-firstname').value.trim();
+      const lastname = byId('pr-lastname').value.trim();
+      const payload = {
+        slug,
+        full_name: `${firstname} ${lastname}`.trim(),
+        email: byId('pr-email').value.trim(),
+        phone: byId('pr-phone').value.trim() || null,
+        client_ip: null,
+      };
+      submitRegistration(payload);
+    });
     // Thank modal events
     const tModal = byId('thank-modal');
     const tOverlay = tModal?.querySelector('.modal__overlay');

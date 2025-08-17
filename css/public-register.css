@@ -45,3 +45,16 @@ a:hover{text-decoration:underline}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 .footer{text-align:center;color:var(--color-text-2);margin-top:var(--space-6);font-size:var(--fs-12)}
+
+/* Modals */
+.modal{position:fixed;inset:0;z-index:1000}
+.modal[hidden]{display:none}
+.modal__overlay{position:absolute;inset:0;background:rgba(0,0,0,.45);}
+.modal__content{position:relative;max-width:560px;margin:10vh auto;background:var(--color-surface);border:1px solid var(--color-border-2);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.25);padding:var(--space-5);animation:modal-in .18s ease-out}
+.modal__content:focus{outline:2px solid var(--color-primary-50)}
+.cm-body{display:flex;flex-direction:column;gap:.6rem;margin:var(--space-3) 0}
+.cm-line{display:flex;justify-content:space-between;gap:1rem;border:1px solid var(--color-border-2);background:var(--color-surface-2);border-radius:10px;padding:.6rem .8rem}
+.cm-label{color:var(--color-text-2)}
+.cm-actions{display:flex;justify-content:flex-end;gap:.6rem;margin-top:var(--space-3)}
+@keyframes modal-in{from{transform:translateY(6px);opacity:0}to{transform:none;opacity:1}}
+@media(max-width:720px){.modal__content{margin:6vh var(--space-3)}}

@@ -291,6 +291,13 @@
     loadEvent();
     const form = byId('public-register-form');
     form?.addEventListener('submit', onSubmit);
+    // S'assurer que les modals sont attachés au body (évite des soucis de stacking context)
+    ['confirm-modal','thank-modal'].forEach(id=>{
+      const el = byId(id);
+      if (el && el.parentElement !== document.body){
+        document.body.appendChild(el);
+      }
+    });
     // Modal events
     const modal = byId('confirm-modal');
     const overlay = modal?.querySelector('.modal__overlay');

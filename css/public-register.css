@@ -47,7 +47,7 @@ a:hover{text-decoration:underline}
 .footer{text-align:center;color:var(--color-text-2);margin-top:var(--space-6);font-size:var(--fs-12)}
 
 /* Modals */
-.modal{position:fixed;inset:0;z-index:1000}
+.modal{position:fixed;inset:0;z-index:9999}
 .modal[hidden]{display:none}
 .modal__overlay{position:absolute;inset:0;background:rgba(0,0,0,.45);}
 .modal__content{position:relative;max-width:560px;margin:10vh auto;background:var(--color-surface);border:1px solid var(--color-border-2);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.25);padding:var(--space-5);animation:modal-in .18s ease-out}

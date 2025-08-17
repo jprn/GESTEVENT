@@ -7,17 +7,8 @@ const PAGE_SIZE = 6;
 function qs(sel){ return document.querySelector(sel); }
 
 function getStatus(event){
-  // 1) Chaîne explicite
-  const s = (event.status ?? '').toString().toLowerCase();
-  if (s === 'published' || s === 'public') return 'published';
-  if (s === 'draft' || s === 'private') return 'draft';
-  // 2) Booléen is_published
-  if (event.is_published === true) return 'published';
-  if (event.is_published === false) return 'draft';
-  // 3) Timestamp published_at
-  if (event.published_at) return 'published';
-  // 4) Par défaut: brouillon (ne pas inférer via slug)
-  return 'draft';
+  const s = (event.status ?? '').toString().trim().toLowerCase();
+  return s === 'published' ? 'published' : 'draft';
 }
 function show(el){ el?.removeAttribute('hidden'); }
 function hide(el){ el?.setAttribute('hidden',''); }
@@ -219,28 +210,28 @@ async function fetchEvents(page){
   try{
     const { data, error, count } = await supa
       .from('events')
-      .select('id,title,slug,status,is_published,published_at,description_html,starts_at,ends_at,capacity,registered_count,checkin_count,revenue_cents,ticket_type,price_cents,max_per_user,sales_from,sales_until,is_open,show_remaining', { count: 'exact' })
+      .select('id,title,slug,status,description_html,starts_at,ends_at,capacity,registered_count,checkin_count,revenue_cents,ticket_type,price_cents,max_per_user,sales_from,sales_until,is_open,show_remaining', { count: 'exact' })
       .eq('owner_id', user.id)
       .order('starts_at', { ascending: false })
       .range(from, to);
     if (error) throw error;
     return { rows: data || [], total: count || 0 };
   }catch(err1){
-    // 2) Repli sans status (schéma ancien sans colonne status)
+    // 2) Repli sans colonnes d'agrégat (mais on garde status)
     try{
       const { data, error, count } = await supa
         .from('events')
-        .select('id,title,slug,description_html,starts_at,ends_at,capacity,registered_count,checkin_count,revenue_cents,ticket_type,price_cents,max_per_user,sales_from,sales_until,is_open,show_remaining', { count: 'exact' })
+        .select('id,title,slug,status,description_html,starts_at,ends_at,capacity,ticket_type,price_cents,max_per_user,sales_from,sales_until,is_open,show_remaining', { count: 'exact' })
         .eq('owner_id', user.id)
         .order('starts_at', { ascending: false })
         .range(from, to);
       if (error) throw error;
       return { rows: data || [], total: count || 0 };
     }catch(err2){
-      // 3) Repli minimal (aucune colonne d'agrégat non standard)
+      // 3) Repli minimal (toujours inclure status)
       const { data, error, count } = await supa
         .from('events')
-        .select('id,title,slug,description_html,starts_at,ends_at,capacity,ticket_type,price_cents,max_per_user,sales_from,sales_until,is_open,show_remaining', { count: 'exact' })
+        .select('id,title,slug,status,description_html,starts_at,ends_at,capacity,ticket_type,price_cents,max_per_user,sales_from,sales_until,is_open,show_remaining', { count: 'exact' })
         .eq('owner_id', user.id)
         .order('starts_at', { ascending: false })
         .range(from, to);
@@ -277,6 +268,7 @@ async function loadPage(page){
   renderSkeletons();
   try{
     const { rows, total } = await fetchEvents(page);
+    try{ console.table(rows.map(r=>({ id:r.id, title:r.title, status:r.status, slug:r.slug }))); }catch{}
     state.total = total;
     sk.innerHTML = '';
     hide(sk);

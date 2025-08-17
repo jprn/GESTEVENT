@@ -47,6 +47,8 @@ function renderSkeletons(count=PAGE_SIZE){
 function percent(n, d){ if (!d) return 0; return Math.max(0, Math.min(100, Math.round((n/d)*100))); }
 function eur(cents){ if (typeof cents !== 'number') return '—'; return (cents/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'}); }
 function fmtDate(iso){ if (!iso) return '—'; try { return new Date(iso).toLocaleString('fr-FR'); } catch { return iso; } }
+function stripHtml(html){ const tmp = document.createElement('div'); tmp.innerHTML = html || ''; return tmp.textContent || tmp.innerText || ''; }
+function clip(text, n=140){ if (!text) return ''; const t = text.trim(); return t.length>n ? (t.slice(0,n-1)+'…') : t; }
 
 function renderCards(events, plan){
   const grid = qs('#events-grid');
@@ -55,69 +57,64 @@ function renderCards(events, plan){
   for (const e of events){
     const p = percent(e.registered_count||0, e.capacity||0);
     const card = document.createElement('article');
-    card.className = 'card';
-    // Afficher un badge de statut pour distinguer brouillon vs publié
-    // Si status absent (schéma sans colonne), n'affichez pas de badge
+    const statusClass = e.status === 'draft' ? 'card--draft' : (e.status === 'published' ? 'card--published' : '');
+    card.className = `card card--compact ${statusClass}`.trim();
     let statusBadge = '';
-    if (e.status === 'draft'){
-      statusBadge = '<span class="badge badge--draft" title="Cet événement n\'est pas publié">Brouillon</span>';
-    } else if (e.status === 'published'){
-      statusBadge = '<span class="badge badge--published" title="Événement publié">Publié</span>';
-    }
+    if (e.status === 'draft') statusBadge = '<span class="badge badge--draft">Brouillon</span>';
+    else if (e.status === 'published') statusBadge = '<span class="badge badge--published">Publié</span>';
 
-    // Lien public uniquement si publié (slug ou id utilisable)
-    // Si status inconnu, on laisse le lien Public actif comme avant
-    const publicLink = (e.status === 'draft')
-      ? `<button class="btn btn--ghost" disabled title="Non publié">Public</button>`
-      : `<a class="btn btn--ghost" href="./register.html?e=${encodeURIComponent(e.slug || e.id)}">Public</a>`;
-
+    const desc = clip(stripHtml(e.description_html || ''));
     card.innerHTML = `
-      <header>
-        <h3>${e.title || 'Sans titre'} ${statusBadge}</h3>
+      <header class="card__header">
+        <h3 class="card__title">${e.title || 'Sans titre'} ${statusBadge}</h3>
         <div class="meta">${fmtDate(e.starts_at)} → ${fmtDate(e.ends_at)}</div>
       </header>
-      <div class="grid">
-        <div class="metric"><span class="label">Inscrits / Max</span><span class="value">${e.registered_count ?? 0} / ${e.capacity ?? '—'}</span></div>
-        <div class="metric"><span class="label">Remplissage</span><span class="value">${p}%</span></div>
-        <div class="metric"><span class="label">Encaissé</span><span class="value">${eur(e.revenue_cents)}</span></div>
-      </div>
-      <div class="progress" aria-label="Taux de remplissage"><div class="progress__bar" style="width:${p}%"></div></div>
-      <div class="meta">Check‑ins: ${e.checkin_count ?? 0}</div>
-      <div class="card__actions">
-        <a class="btn" href="./create-event.html">Créer</a>
-        <a class="btn btn--ghost" href="./create-event.html?e=${encodeURIComponent(e.id)}">Modifier</a>
-        ${publicLink}
-        <a class="btn btn--ghost" href="./checkin.html?e=${encodeURIComponent(e.id)}">Check‑in</a>
-        <a class="btn btn--ghost" href="./participants.html?e=${encodeURIComponent(e.id)}">Participants</a>
-        ${plan === 'pro' ?
-          `<a class="btn btn--ghost" href="./controllers.html?e=${encodeURIComponent(e.id)}">Contrôleurs</a>` :
-          `<a class="btn btn--ghost" href="./pricing.html">Upgrade Pro</a>`
-        }
-        <button class="btn btn--danger" data-action="delete" data-id="${e.id}">Supprimer</button>
+      ${desc ? `<p class="card__desc">${desc}</p>` : ''}
+      <div class="card__metrics">
+        <div class="metric"><span class="label">Inscrits</span><span class="value">${e.registered_count ?? 0}${e.capacity?` / ${e.capacity}`:''}</span></div>
+        <div class="metric"><span class="label">Revenu</span><span class="value">${eur(e.revenue_cents)}</span></div>
       </div>
     `;
+    // Carte cliquable -> modal d'aperçu
+    card.tabIndex = 0;
+    card.addEventListener('click', ()=> openEventModal(e));
+    card.addEventListener('keypress', (ev)=>{ if (ev.key==='Enter' || ev.key===' ') { ev.preventDefault(); openEventModal(e); }});
     grid.appendChild(card);
   }
 }
 
-function bindDeleteHandlers(){
-  document.querySelectorAll('[data-action="delete"]').forEach(btn=>{
-    btn.addEventListener('click', async ()=>{
-      const id = btn.getAttribute('data-id');
-      if (!id) return;
-      if (!confirm('Supprimer cet événement ?')) return;
-      try{
-        const supa = window.AppAPI.getClient();
-        const { error } = await supa.from('events').delete().eq('id', id);
-        if (error) throw error;
-        toast('Événement supprimé');
-        await loadPage(state.page);
-      }catch(err){
-        console.error(err);
-        toast('Erreur lors de la suppression', 'error');
-      }
-    });
-  });
+// La suppression n'est plus exposée directement sur la carte. On pourra la proposer dans la modal si nécessaire.
+function bindDeleteHandlers(){}
+
+// Modal d'aperçu d'événement
+function openEventModal(e){
+  const m = qs('#event-modal');
+  const body = qs('#event-modal .modal__body');
+  if (!m || !body) return;
+  const status = e.status ? `<span class="badge ${e.status==='draft'?'badge--draft':'badge--published'}">${e.status==='draft'?'Brouillon':'Publié'}</span>` : '';
+  body.innerHTML = `
+    <h3>${e.title || 'Sans titre'} ${status}</h3>
+    <div class="meta">${fmtDate(e.starts_at)} → ${fmtDate(e.ends_at)}</div>
+    ${e.description_html ? `<div class="modal__desc">${e.description_html}</div>` : ''}
+    <div class="modal__grid">
+      <div><strong>Inscrits</strong><div>${e.registered_count ?? 0}${e.capacity?` / ${e.capacity}`:''}</div></div>
+      <div><strong>Revenu</strong><div>${eur(e.revenue_cents)}</div></div>
+      <div><strong>Check‑ins</strong><div>${e.checkin_count ?? 0}</div></div>
+    </div>
+    <div class="modal__actions">
+      <a class="btn" href="./create-event.html?e=${encodeURIComponent(e.id)}">Modifier</a>
+      <a class="btn btn--ghost" href="./participants.html?e=${encodeURIComponent(e.id)}">Participants</a>
+      <a class="btn btn--ghost" href="./checkin.html?e=${encodeURIComponent(e.id)}">Check‑in</a>
+    </div>
+  `;
+  m.removeAttribute('hidden');
+  document.body.style.overflow = 'hidden';
+}
+function closeEventModal(){
+  const m = qs('#event-modal');
+  if (!m) return;
+  m.setAttribute('hidden','');
+  document.body.style.overflow = '';
 }
 
 async function getPlan(){
@@ -139,11 +136,11 @@ async function fetchEvents(page){
   const from = (page-1)*PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
   // Sélection explicite des colonnes
-  // 1) Tentative complète (incluant agrégats et status)
+  // 1) Tentative complète (incluant agrégats, status et description)
   try{
     const { data, error, count } = await supa
       .from('events')
-      .select('id,title,slug,status,starts_at,ends_at,capacity,registered_count,checkin_count,revenue_cents', { count: 'exact' })
+      .select('id,title,slug,status,description_html,starts_at,ends_at,capacity,registered_count,checkin_count,revenue_cents', { count: 'exact' })
       .eq('owner_id', user.id)
       .order('starts_at', { ascending: false })
       .range(from, to);
@@ -154,7 +151,7 @@ async function fetchEvents(page){
     try{
       const { data, error, count } = await supa
         .from('events')
-        .select('id,title,slug,starts_at,ends_at,capacity,registered_count,checkin_count,revenue_cents', { count: 'exact' })
+        .select('id,title,slug,description_html,starts_at,ends_at,capacity,registered_count,checkin_count,revenue_cents', { count: 'exact' })
         .eq('owner_id', user.id)
         .order('starts_at', { ascending: false })
         .range(from, to);
@@ -164,7 +161,7 @@ async function fetchEvents(page){
       // 3) Repli minimal (aucune colonne d'agrégat non standard)
       const { data, error, count } = await supa
         .from('events')
-        .select('id,title,slug,starts_at,ends_at,capacity', { count: 'exact' })
+        .select('id,title,slug,description_html,starts_at,ends_at,capacity', { count: 'exact' })
         .eq('owner_id', user.id)
         .order('starts_at', { ascending: false })
         .range(from, to);
@@ -230,6 +227,10 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   // pagination events
   qs('#prevPage')?.addEventListener('click', ()=>{ if (state.page>1) loadPage(state.page-1); });
   qs('#nextPage')?.addEventListener('click', ()=>{ loadPage(state.page+1); });
+  // Modal events
+  qs('#event-modal .modal__close')?.addEventListener('click', closeEventModal);
+  qs('#event-modal')?.addEventListener('click', (e)=>{ if (e.target.id === 'event-modal') closeEventModal(); });
+  document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') closeEventModal(); });
   await loadPage(1);
   // Show success toast if coming from wizard
   try{

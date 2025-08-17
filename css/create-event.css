@@ -41,3 +41,13 @@ a:hover{text-decoration:underline}
 /* Wizard actions */
 .wizard__actions{display:flex;align-items:center;gap:.5rem}
 .wizard__actions .spacer{flex:1}
+
+/* Publish confirmation modal */
+.ce-modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;padding:2rem;z-index:1000}
+.ce-modal[hidden]{display:none !important}
+.ce-modal__dialog{background:var(--color-surface);border:1px solid var(--color-border-2);border-radius:16px;max-width:min(720px, 92vw);width:100%;box-shadow:0 16px 48px rgba(0,0,0,.2);position:relative}
+.ce-modal__body{padding:clamp(16px,3vw,24px)}
+.ce-modal__close{position:absolute;top:8px;right:10px;border:none;background:transparent;font-size:22px;line-height:1;cursor:pointer;color:var(--color-text-2)}
+.ce-modal__actions{display:flex;gap:.5rem;margin-top:var(--space-4)}
+.pub-recap{display:grid;grid-template-columns:1fr;gap:.35rem;margin-top:.5rem}
+.pub-recap .pub-link{display:block;margin-top:.5rem;padding:.6rem .8rem;background:var(--color-surface-2);border:1px solid var(--color-border-2);border-radius:10px;font-weight:700;word-break:break-all}

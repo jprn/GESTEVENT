@@ -101,6 +101,33 @@ function setStep(step){
   qs('#prevStep').disabled = step === 1;
   qs('#nextStep').hidden = (step === 2);
   qs('#publish').hidden = (step !== 2);
+  updatePublishVisibility();
+}
+
+function clearFormAndState(){
+  // reset champs visibles
+  const form = qs('#eventForm');
+  if (form) form.reset();
+  // reset éditeur riche + champ caché
+  const editor = qs('#description');
+  const hidden = qs('#description_html');
+  if (editor) editor.innerHTML = '';
+  if (hidden) hidden.value = '';
+  // champs spécifiques
+  ['#title','#location_text','#starts_at','#ends_at','#price_cents','#qty_total','#max_per_user','#sales_from','#sales_until']
+    .forEach(sel=>{ const el = qs(sel); if (el) el.value = ''; });
+  const ticket = qs('#ticket_type'); if (ticket) ticket.value = 'free';
+  const price = qs('#price_cents'); if (price) price.disabled = true;
+  const isOpen = qs('#is_open'); if (isOpen) isOpen.checked = false;
+  const showRem = qs('#show_remaining'); if (showRem) showRem.checked = false;
+  // autosave local
+  try{ localStorage.removeItem(STORAGE_KEY); }catch{}
+  // retirer le paramètre ?e pour repartir sur une nouvelle création
+  try{
+    const url = new URL(location.href);
+    url.searchParams.delete('e');
+    history.replaceState({}, '', url);
+  }catch{}
 }
 
 async function ensureUniqueSlug(base){
@@ -186,9 +213,20 @@ function bindAutosave(){
           qs('#price_cents').disabled = !paid;
         }
         autosave();
+        updatePublishVisibility();
       });
     });
   });
+}
+
+function updatePublishVisibility(){
+  const pub = qs('#publish');
+  const step2Visible = !pub.hidden;
+  if (!step2Visible) return;
+  const v1 = validateStep(1);
+  const v2 = validateStep(2);
+  // Le bouton Publier n'apparaît qu'en étape 2 (géré par setStep) et est désactivé tant que non valide
+  pub.disabled = !(v1.ok && v2.ok);
 }
 
 document.addEventListener('DOMContentLoaded', async ()=>{
@@ -226,7 +264,9 @@ document.addEventListener('DOMContentLoaded', async ()=>{
           toast('Brouillon enregistré');
         } else {
           // Déjà sur la billetterie (dernière étape)
-          toast('Brouillon mis à jour. Utilisez "Publier" pour finaliser.');
+          toast('Brouillon mis à jour.');
+          // Comportement demandé: clic sur Suivant depuis la billetterie -> vider champs
+          clearFormAndState();
         }
       }catch(err){
         console.error('Erreur sauvegarde brouillon via "Suivant"', err);
@@ -257,22 +297,57 @@ document.addEventListener('DOMContentLoaded', async ()=>{
         url.searchParams.set('e', row.id);
         history.replaceState({}, '', url);
       }
+      // Comportement demandé: vider les champs après enregistrement brouillon
+      clearFormAndState();
+      // revenir au step 1 visuellement
+      currentStep = 1; setStep(currentStep);
     }catch(err){ console.error(err); toast('Erreur enregistrement brouillon', 'error'); }
   });
 
+  // Publication: ouvrir modal de confirmation avec récapitulatif
   qs('#publish').addEventListener('click', async ()=>{
-    // valider toutes les étapes
     const v1 = validateStep(1); if (!v1.ok){ toast(v1.msg, 'error'); return; }
     const v2 = validateStep(2); if (!v2.ok){ toast(v2.msg, 'error'); return; }
+    const data = getFormData();
+    const baseSlug = slugify(data.title);
+    const previewUrl = `${location.origin}/event/${baseSlug || 'nouvel-evenement'}`;
+    const recap = [
+      `<div><strong>Titre:</strong> ${data.title || '—'}</div>`,
+      `<div><strong>Dates:</strong> ${data.starts_at || '—'} → ${data.ends_at || '—'}</div>`,
+      `<div><strong>Lieu:</strong> ${data.location_text || '—'}</div>`,
+      `<div><strong>Billetterie:</strong> ${data.ticket_type==='paid' ? `Payant · ${(data.price_cents/100).toFixed(2)} €` : 'Gratuit'}</div>`,
+      `<div><strong>Quantité totale:</strong> ${data.qty_total ?? '—'} · <strong>Max/utilisateur:</strong> ${data.max_per_user ?? '—'}</div>`,
+      `<div><strong>Période de vente:</strong> ${data.sales_from || '—'} → ${data.sales_until || '—'} · <strong>Statut ventes:</strong> ${data.is_open ? 'Ouvertes' : 'Fermées'}</div>`,
+      `<a class="pub-link" href="${previewUrl}" target="_blank" rel="noopener">Lien public (prévisionnel): ${previewUrl}</a>`
+    ].join('');
+    const modal = qs('#publish-modal');
+    const box = qs('#pub-recap');
+    if (modal && box){
+      box.innerHTML = recap;
+      modal.removeAttribute('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+  });
+
+  // Gestion boutons de la modal de publication
+  const pubModal = qs('#publish-modal');
+  pubModal?.querySelector('#cancelPublish')?.addEventListener('click', ()=>{ pubModal.setAttribute('hidden',''); document.body.style.overflow=''; });
+  pubModal?.querySelector('.ce-modal__close')?.addEventListener('click', ()=>{ pubModal.setAttribute('hidden',''); document.body.style.overflow=''; });
+  pubModal?.addEventListener('click', (e)=>{ if (e.target.id==='publish-modal'){ pubModal.setAttribute('hidden',''); document.body.style.overflow=''; }});
+  document.addEventListener('keydown', (e)=>{ if (e.key==='Escape' && !pubModal?.hasAttribute('hidden')){ pubModal.setAttribute('hidden',''); document.body.style.overflow=''; } });
+
+  // Confirmation de publication: appel réel à Supabase
+  pubModal?.querySelector('#confirmPublish')?.addEventListener('click', async (ev)=>{
+    const btn = ev.currentTarget;
+    btn.disabled = true;
     try{
       const row = await upsertEvent('published');
-      toast('Événement publié');
-      // clear local autosave
-      try{ localStorage.removeItem(STORAGE_KEY); }catch{}
-      // redirect to dashboard
-      try{ localStorage.setItem('dashboard_toast', 'Événement publié avec succès'); }catch{}
+      const publicUrl = row?.slug ? `${location.origin}/event/${row.slug}` : '';
+      try{ localStorage.setItem('dashboard_toast', publicUrl ? `Événement publié: ${publicUrl}` : 'Événement publié avec succès'); }catch{}
+      clearFormAndState();
       window.location.href = './dashboard.html';
     }catch(err){ console.error(err); toast('Erreur publication', 'error'); }
+    finally{ btn.disabled = false; }
   });
 
   // If editing, load existing event

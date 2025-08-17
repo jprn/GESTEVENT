@@ -117,6 +117,20 @@
       </div>
     </form>
   </main>
+  <!-- Modal confirmation publication -->
+  <div id="publish-modal" class="ce-modal" hidden role="dialog" aria-modal="true" aria-labelledby="pub-title">
+    <div class="ce-modal__dialog">
+      <button class="ce-modal__close" type="button" aria-label="Fermer">×</button>
+      <div class="ce-modal__body">
+        <h3 id="pub-title">Confirmer la publication</h3>
+        <div id="pub-recap" class="pub-recap"></div>
+        <div class="ce-modal__actions">
+          <button type="button" id="confirmPublish" class="btn">Valider et publier</button>
+          <button type="button" id="cancelPublish" class="btn btn--ghost">Annuler</button>
+        </div>
+      </div>
+    </div>
+  </div>
   <!-- Zone de notifications (toast) -->
   <div id="toast" class="toast" hidden aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

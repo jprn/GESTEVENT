@@ -57,14 +57,19 @@ function renderCards(events, plan){
     const card = document.createElement('article');
     card.className = 'card';
     // Afficher un badge de statut pour distinguer brouillon vs publié
-    const statusBadge = e.status === 'draft'
-      ? '<span class="badge badge--draft" title="Cet événement n\'est pas publié">Brouillon</span>'
-      : '<span class="badge badge--published" title="Événement publié">Publié</span>';
+    // Si status absent (schéma sans colonne), n'affichez pas de badge
+    let statusBadge = '';
+    if (e.status === 'draft'){
+      statusBadge = '<span class="badge badge--draft" title="Cet événement n\'est pas publié">Brouillon</span>';
+    } else if (e.status === 'published'){
+      statusBadge = '<span class="badge badge--published" title="Événement publié">Publié</span>';
+    }
 
     // Lien public uniquement si publié (slug ou id utilisable)
-    const publicLink = (e.status === 'published')
-      ? `<a class="btn btn--ghost" href="./register.html?e=${encodeURIComponent(e.slug || e.id)}">Public</a>`
-      : `<button class="btn btn--ghost" disabled title="Non publié">Public</button>`;
+    // Si status inconnu, on laisse le lien Public actif comme avant
+    const publicLink = (e.status === 'draft')
+      ? `<button class="btn btn--ghost" disabled title="Non publié">Public</button>`
+      : `<a class="btn btn--ghost" href="./register.html?e=${encodeURIComponent(e.slug || e.id)}">Public</a>`;
 
     card.innerHTML = `
       <header>
@@ -133,18 +138,41 @@ async function fetchEvents(page){
   const user = await window.AppAPI.getUser();
   const from = (page-1)*PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
-  // Select explicit columns; consider creating a view with these aggregates
-  const q = supa
-    .from('events')
-    // Ajout de status pour distinguer brouillon vs publié
-    .select('id,title,slug,status,starts_at,ends_at,capacity,registered_count,checkin_count,revenue_cents', { count: 'exact' })
-    .eq('owner_id', user.id)
-    .order('starts_at', { ascending: false })
-    .range(from, to);
-
-  const { data, error, count } = await q;
-  if (error) throw error;
-  return { rows: data || [], total: count || 0 };
+  // Sélection explicite des colonnes
+  // 1) Tentative complète (incluant agrégats et status)
+  try{
+    const { data, error, count } = await supa
+      .from('events')
+      .select('id,title,slug,status,starts_at,ends_at,capacity,registered_count,checkin_count,revenue_cents', { count: 'exact' })
+      .eq('owner_id', user.id)
+      .order('starts_at', { ascending: false })
+      .range(from, to);
+    if (error) throw error;
+    return { rows: data || [], total: count || 0 };
+  }catch(err1){
+    // 2) Repli sans status (schéma ancien sans colonne status)
+    try{
+      const { data, error, count } = await supa
+        .from('events')
+        .select('id,title,slug,starts_at,ends_at,capacity,registered_count,checkin_count,revenue_cents', { count: 'exact' })
+        .eq('owner_id', user.id)
+        .order('starts_at', { ascending: false })
+        .range(from, to);
+      if (error) throw error;
+      return { rows: data || [], total: count || 0 };
+    }catch(err2){
+      // 3) Repli minimal (aucune colonne d'agrégat non standard)
+      const { data, error, count } = await supa
+        .from('events')
+        .select('id,title,slug,starts_at,ends_at,capacity', { count: 'exact' })
+        .eq('owner_id', user.id)
+        .order('starts_at', { ascending: false })
+        .range(from, to);
+      if (error) throw error;
+      // Les champs agrégés et status seront indéfinis; l'UI gère des valeurs par défaut
+      return { rows: data || [], total: count || 0 };
+    }
+  }
 }
 
 function updateStats(rows){

@@ -165,12 +165,14 @@
     const slug = form?.dataset?.slug || new URLSearchParams(location.search).get('e');
     if (!slug){ setFeedback('Slug manquant.', 'error'); return; }
 
+    const firstname = byId('pr-firstname').value.trim();
+    const lastname = byId('pr-lastname').value.trim();
     const payload = {
       slug,
-      firstname: byId('pr-firstname').value.trim(),
-      lastname: byId('pr-lastname').value.trim(),
+      full_name: `${firstname} ${lastname}`.trim(),
       email: byId('pr-email').value.trim(),
       phone: byId('pr-phone').value.trim() || null,
+      client_ip: null, // laissé à l’EF qui lira X-Forwarded-For
     };
 
     setLoading(true);

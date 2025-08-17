@@ -3,6 +3,21 @@
 const STORAGE_KEY = 'ce_draft_v1';
 
 function qs(sel){ return document.querySelector(sel); }
+
+// Convertit une date ISO/UTC ou locale vers le format attendu par input[type="datetime-local"]: YYYY-MM-DDTHH:MM
+function toDatetimeLocal(value){
+  try{
+    if (!value) return '';
+    const d = new Date(value);
+    const pad = (n)=> String(n).padStart(2,'0');
+    const yyyy = d.getFullYear();
+    const mm = pad(d.getMonth()+1);
+    const dd = pad(d.getDate());
+    const hh = pad(d.getHours());
+    const mi = pad(d.getMinutes());
+    return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+  }catch{ return ''; }
+}
 function qsa(sel){ return Array.from(document.querySelectorAll(sel)); }
 function toast(msg, type='info'){
   // reuse dashboard toast if present; fallback to alert
@@ -44,16 +59,16 @@ function setFormData(data){
   if (data.title) qs('#title').value = data.title;
   if (data.description_html){ qs('#description').innerHTML = data.description_html; qs('#description_html').value = data.description_html; }
   if (data.location_text) qs('#location_text').value = data.location_text;
-  if (data.starts_at) qs('#starts_at').value = data.starts_at;
-  if (data.ends_at) qs('#ends_at').value = data.ends_at;
+  if (data.starts_at) qs('#starts_at').value = toDatetimeLocal(data.starts_at);
+  if (data.ends_at) qs('#ends_at').value = toDatetimeLocal(data.ends_at);
   if (data.ticket_type) qs('#ticket_type').value = data.ticket_type;
   if (typeof data.price_cents === 'number') qs('#price_cents').value = (data.price_cents/100).toFixed(2);
   if (typeof data.qty_total === 'number') qs('#qty_total').value = data.qty_total;
   if (typeof data.max_per_user === 'number') qs('#max_per_user').value = data.max_per_user;
   if (typeof data.is_open === 'boolean') qs('#is_open').checked = data.is_open;
   if (typeof data.show_remaining === 'boolean') qs('#show_remaining').checked = data.show_remaining;
-  if (data.sales_from) qs('#sales_from').value = data.sales_from;
-  if (data.sales_until) qs('#sales_until').value = data.sales_until;
+  if (data.sales_from) qs('#sales_from').value = toDatetimeLocal(data.sales_from);
+  if (data.sales_until) qs('#sales_until').value = toDatetimeLocal(data.sales_until);
 }
 
 function autosave(){
@@ -63,6 +78,9 @@ function autosave(){
 
 function loadAutosave(){
   try{
+    // Ne pas charger l'autosave si on est en mode édition (évite d'écraser les valeurs Supabase)
+    const params = new URLSearchParams(location.search);
+    if (params.get('e')) return;
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw){ setFormData(JSON.parse(raw)); }
   }catch{}

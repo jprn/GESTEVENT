@@ -38,10 +38,10 @@ a:hover{text-decoration:underline}
 .card__metrics .label{display:block;color:var(--color-text-2);font-size:var(--fs-12)}
 .card__metrics .value{font-weight:700}
 
-/* États carte: brouillon/publié */
-.card--draft{border-color:#ffcdc7;box-shadow:0 4px 16px rgba(229,72,77,.15)}
+/* États carte: brouillon/publié (accentués) */
+.card--draft{border-color:#ffcdc7;box-shadow:0 4px 16px rgba(229,72,77,.15);background:rgba(229,72,77,.05);border-left:4px solid #e5484d}
 .card--draft:hover{box-shadow:0 10px 28px rgba(229,72,77,.25)}
-.card--published{border-color:#c8e6d0;box-shadow:0 4px 16px rgba(30,127,59,.12)}
+.card--published{border-color:#c8e6d0;box-shadow:0 4px 16px rgba(30,127,59,.12);background:rgba(30,127,59,.05);border-left:4px solid #1e7f3b}
 .card--published:hover{box-shadow:0 10px 28px rgba(30,127,59,.22)}
 .meta{color:var(--color-text-2);font-size:var(--fs-12)}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-3)}
@@ -89,6 +89,14 @@ a:hover{text-decoration:underline}
 #event-modal .modal__actions{display:flex;gap:.5rem;margin-top:var(--space-4)}
 #event-modal .modal__close{position:absolute;top:8px;right:10px;border:none;background:transparent;font-size:22px;line-height:1;cursor:pointer;color:var(--color-text-2)}
 #event-modal .modal__close:hover{color:var(--color-text)}
+
+/* Modal de confirmation de publication sur Dashboard */
+#publish-modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;padding:2rem;z-index:1001}
+#publish-modal[hidden]{display:none !important}
+#publish-modal .modal__dialog{background:var(--color-surface);border:1px solid var(--color-border-2);border-radius:16px;max-width:min(720px, 92vw);width:100%;box-shadow:0 16px 48px rgba(0,0,0,.2);position:relative}
+#publish-modal .modal__body{padding:clamp(16px,3vw,24px)}
+#publish-modal .modal__actions{display:flex;gap:.5rem;margin-top:var(--space-4)}
+#publish-modal .modal__close{position:absolute;top:8px;right:10px;border:none;background:transparent;font-size:22px;line-height:1;cursor:pointer;color:var(--color-text-2)}
 
 @media (max-width: 640px){
   #event-modal .modal__grid{grid-template-columns:1fr}

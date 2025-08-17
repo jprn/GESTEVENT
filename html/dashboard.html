@@ -40,12 +40,25 @@
     </nav>
   </main>
 
-  <!-- Modal d'aperçu d'événement -->
-  <div id="event-modal" class="modal" hidden>
-    <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="eventModalTitle">
-      <button class="modal__close" aria-label="Fermer">×</button>
+  <!-- Modal Aperçu Événement -->
+  <div id="event-modal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="event-modal-title">
+    <div class="modal__dialog">
+      <button class="modal__close" type="button" aria-label="Fermer">×</button>
+      <div class="modal__body"></div>
+    </div>
+  </div>
+
+  <!-- Modal Confirmation Publication -->
+  <div id="publish-modal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="publish-modal-title">
+    <div class="modal__dialog">
+      <button class="modal__close" type="button" aria-label="Fermer">×</button>
       <div class="modal__body">
-        <!-- Contenu injecté dynamiquement -->
+        <h3 id="publish-modal-title">Confirmer la publication</h3>
+        <div id="dash-pub-recap" class="modal__desc"></div>
+        <div class="modal__actions">
+          <button type="button" id="dash-confirm-publish" class="btn">Valider et publier</button>
+          <button type="button" id="dash-cancel-publish" class="btn btn--ghost">Annuler</button>
+        </div>
       </div>
     </div>
   </div>

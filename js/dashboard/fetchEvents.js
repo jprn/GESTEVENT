@@ -49,6 +49,35 @@ function eur(cents){ if (typeof cents !== 'number') return '—'; return (cents/
 function fmtDate(iso){ if (!iso) return '—'; try { return new Date(iso).toLocaleString('fr-FR'); } catch { return iso; } }
 function stripHtml(html){ const tmp = document.createElement('div'); tmp.innerHTML = html || ''; return tmp.textContent || tmp.innerText || ''; }
 function clip(text, n=140){ if (!text) return ''; const t = text.trim(); return t.length>n ? (t.slice(0,n-1)+'…') : t; }
+function slugify(str){
+  return (str||'')
+    .normalize('NFD').replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g,'-')
+    .replace(/^-+|-+$/g,'')
+    .slice(0,80);
+}
+
+async function ensureUniqueSlug(base){
+  const supa = window.AppAPI.getClient();
+  let candidate = base || 'evenement';
+  for (let i=1;i<50;i++){
+    const { data, error } = await supa.from('events').select('slug').eq('slug', candidate).maybeSingle();
+    if (error) throw error;
+    if (!data) return candidate;
+    candidate = `${base}-${i+1}`;
+  }
+  return `${base}-${Date.now()}`;
+}
+
+async function publishEvent(id, title){
+  const supa = window.AppAPI.getClient();
+  const base = slugify(title);
+  const slug = await ensureUniqueSlug(base);
+  const { data, error } = await supa.from('events').update({ status:'published', slug }).eq('id', id).select('id, slug').single();
+  if (error) throw error;
+  return data;
+}
 
 function renderCards(events, plan){
   const grid = qs('#events-grid');
@@ -115,8 +144,33 @@ function openEventModal(e){
     <div class="modal__actions">
       <a class="btn" href="./create-event.html?e=${encodeURIComponent(e.id)}">Modifier</a>
       <a class="btn btn--ghost" href="./participants.html?e=${encodeURIComponent(e.id)}">Participants</a>
+      ${e.status !== 'published' ? `<button type="button" class="btn" id="dashPublishBtn">Publier</button>` : ''}
     </div>
   `;
+  // Bouton publier (dashboard) -> ouvrir modal de confirmation
+  const dashBtn = qs('#dashPublishBtn');
+  if (dashBtn){
+    dashBtn.addEventListener('click', ()=>{
+      const pm = qs('#publish-modal');
+      const recap = qs('#dash-pub-recap');
+      if (!pm || !recap) return;
+      const baseSlug = slugify(e.title || 'evenement');
+      const previewUrl = `${location.origin}/event/${baseSlug}`;
+      recap.innerHTML = `
+        <div><strong>Titre:</strong> ${e.title || '—'}</div>
+        <div><strong>Dates:</strong> ${fmtDate(e.starts_at)} → ${fmtDate(e.ends_at)}</div>
+        <div><strong>Lieu:</strong> ${e.location_text || '—'}</div>
+        <div><strong>Billetterie:</strong> ${isPaid ? `Payant · ${price}` : 'Gratuit'}</div>
+        <div><strong>Quantité totale:</strong> ${e.capacity ?? '—'}</div>
+        <div><strong>Inscrits:</strong> ${e.registered_count ?? 0}</div>
+        <a class="pub-link" href="${previewUrl}" target="_blank" rel="noopener">Lien public (prévisionnel): ${previewUrl}</a>
+      `;
+      pm.removeAttribute('hidden');
+      document.body.style.overflow = 'hidden';
+      pm.dataset.eventId = e.id;
+      pm.dataset.eventTitle = e.title || '';
+    });
+  }
   m.removeAttribute('hidden');
   document.body.style.overflow = 'hidden';
 }
@@ -243,6 +297,24 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') closeEventModal(); });
   // Sécurité: s'assurer que la modal est fermée au chargement
   try{ closeEventModal(); }catch{}
+  // Dashboard publish modal handlers
+  const pm = qs('#publish-modal');
+  pm?.querySelector('#dash-cancel-publish')?.addEventListener('click', ()=>{ pm.setAttribute('hidden',''); document.body.style.overflow=''; });
+  pm?.querySelector('.modal__close')?.addEventListener('click', ()=>{ pm.setAttribute('hidden',''); document.body.style.overflow=''; });
+  pm?.addEventListener('click', (ev)=>{ if (ev.target.id==='publish-modal'){ pm.setAttribute('hidden',''); document.body.style.overflow=''; }});
+  pm?.querySelector('#dash-confirm-publish')?.addEventListener('click', async (ev)=>{
+    const btn = ev.currentTarget; btn.disabled = true;
+    try{
+      const id = pm.dataset.eventId; const title = pm.dataset.eventTitle;
+      const row = await publishEvent(id, title);
+      const publicUrl = row?.slug ? `${location.origin}/event/${row.slug}` : '';
+      toast(publicUrl ? `Événement publié: ${publicUrl}` : 'Événement publié');
+      pm.setAttribute('hidden',''); document.body.style.overflow='';
+      closeEventModal();
+      await loadPage(state.page);
+    }catch(err){ console.error(err); toast('Erreur publication', 'error'); }
+    finally{ btn.disabled = false; }
+  });
   await loadPage(1);
   // Show success toast if coming from wizard
   try{

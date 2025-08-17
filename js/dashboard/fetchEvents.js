@@ -92,6 +92,11 @@ function openEventModal(e){
   const body = qs('#event-modal .modal__body');
   if (!m || !body) return;
   const status = e.status ? `<span class="badge ${e.status==='draft'?'badge--draft':'badge--published'}">${e.status==='draft'?'Brouillon':'Publié'}</span>` : '';
+  const isPaid = e.ticket_type === 'paid';
+  const price = typeof e.price_cents === 'number' ? eur(e.price_cents) : '—';
+  const sales = `${fmtDate(e.sales_from)} → ${fmtDate(e.sales_until)}`;
+  const salesOpen = e.is_open === true ? 'Ouvert' : (e.is_open === false ? 'Fermé' : '—');
+  const remaining = (typeof e.capacity === 'number' && typeof e.registered_count === 'number') ? Math.max(0, e.capacity - e.registered_count) : null;
   body.innerHTML = `
     <h3>${e.title || 'Sans titre'} ${status}</h3>
     <div class="meta">${fmtDate(e.starts_at)} → ${fmtDate(e.ends_at)}</div>
@@ -101,10 +106,15 @@ function openEventModal(e){
       <div><strong>Revenu</strong><div>${eur(e.revenue_cents)}</div></div>
       <div><strong>Check‑ins</strong><div>${e.checkin_count ?? 0}</div></div>
     </div>
+    <div class="modal__desc">
+      <strong>Billetterie</strong>
+      <div class="meta">Type: ${isPaid ? 'Payant' : 'Gratuit'}${isPaid ? ` · Prix: ${price}` : ''}</div>
+      <div class="meta">Quota par utilisateur: ${e.max_per_user ?? '—'}${e.show_remaining && remaining !== null ? ` · Restants: ${remaining}` : ''}</div>
+      <div class="meta">Période de vente: ${sales} · Statut: ${salesOpen}</div>
+    </div>
     <div class="modal__actions">
       <a class="btn" href="./create-event.html?e=${encodeURIComponent(e.id)}">Modifier</a>
       <a class="btn btn--ghost" href="./participants.html?e=${encodeURIComponent(e.id)}">Participants</a>
-      <a class="btn btn--ghost" href="./checkin.html?e=${encodeURIComponent(e.id)}">Check‑in</a>
     </div>
   `;
   m.removeAttribute('hidden');
@@ -136,11 +146,11 @@ async function fetchEvents(page){
   const from = (page-1)*PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
   // Sélection explicite des colonnes
-  // 1) Tentative complète (incluant agrégats, status et description)
+  // 1) Tentative complète (incluant agrégats, status, description et billetterie)
   try{
     const { data, error, count } = await supa
       .from('events')
-      .select('id,title,slug,status,description_html,starts_at,ends_at,capacity,registered_count,checkin_count,revenue_cents', { count: 'exact' })
+      .select('id,title,slug,status,description_html,starts_at,ends_at,capacity,registered_count,checkin_count,revenue_cents,ticket_type,price_cents,max_per_user,sales_from,sales_until,is_open,show_remaining', { count: 'exact' })
       .eq('owner_id', user.id)
       .order('starts_at', { ascending: false })
       .range(from, to);
@@ -151,7 +161,7 @@ async function fetchEvents(page){
     try{
       const { data, error, count } = await supa
         .from('events')
-        .select('id,title,slug,description_html,starts_at,ends_at,capacity,registered_count,checkin_count,revenue_cents', { count: 'exact' })
+        .select('id,title,slug,description_html,starts_at,ends_at,capacity,registered_count,checkin_count,revenue_cents,ticket_type,price_cents,max_per_user,sales_from,sales_until,is_open,show_remaining', { count: 'exact' })
         .eq('owner_id', user.id)
         .order('starts_at', { ascending: false })
         .range(from, to);
@@ -161,7 +171,7 @@ async function fetchEvents(page){
       // 3) Repli minimal (aucune colonne d'agrégat non standard)
       const { data, error, count } = await supa
         .from('events')
-        .select('id,title,slug,description_html,starts_at,ends_at,capacity', { count: 'exact' })
+        .select('id,title,slug,description_html,starts_at,ends_at,capacity,ticket_type,price_cents,max_per_user,sales_from,sales_until,is_open,show_remaining', { count: 'exact' })
         .eq('owner_id', user.id)
         .order('starts_at', { ascending: false })
         .range(from, to);

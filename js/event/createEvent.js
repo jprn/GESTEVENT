@@ -203,10 +203,33 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   setStep(currentStep);
 
   qs('#nextStep').addEventListener('click', ()=>{
+    // Validation de l'étape courante
     const v = validateStep(currentStep);
     if (!v.ok){ toast(v.msg, 'error'); return; }
-    currentStep = Math.min(2, currentStep+1);
-    setStep(currentStep);
+
+    // Comportement attendu: lorsqu'on passe à la billetterie, on crée/actualise un brouillon côté Supabase
+    // Ceci garantit l'existence de l'événement (status = 'draft') avant la publication
+    (async ()=>{
+      try{
+        // Sauvegarde en brouillon à chaque passage par "Suivant"
+        const row = await upsertEvent('draft');
+        // Si un nouvel ID est retourné (création), on le fixe dans l'URL pour passer en mode édition
+        if (row?.id){
+          const url = new URL(location.href);
+          url.searchParams.set('e', row.id);
+          history.replaceState({}, '', url);
+        }
+        toast(currentStep === 1 ? 'Brouillon enregistré' : 'Brouillon mis à jour');
+      }catch(err){
+        console.error('Erreur sauvegarde brouillon via "Suivant"', err);
+        toast('Erreur enregistrement brouillon', 'error');
+        // On peut décider d’arrêter ici si la sauvegarde échoue; on choisit de ne pas bloquer la navigation
+      }
+
+      // Passage à l'étape suivante (1 -> 2). Si déjà en étape 2, on reste mais on a au moins sauvegardé.
+      currentStep = Math.min(2, currentStep+1);
+      setStep(currentStep);
+    })();
   });
 
   qs('#prevStep').addEventListener('click', ()=>{

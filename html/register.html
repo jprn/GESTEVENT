@@ -90,6 +90,24 @@
     <div class="footer">© <span id="y"></span> GESTEVENT</div>
   </div>
 
+  <!-- Modal confirmation pour billets payants -->
+  <div id="confirm-modal" class="modal" hidden>
+    <div class="modal__overlay" tabindex="-1"></div>
+    <div class="modal__content" role="dialog" aria-modal="true" aria-labelledby="cm-title">
+      <h3 id="cm-title">Confirmer la réservation</h3>
+      <div class="cm-body">
+        <div class="cm-line"><span class="cm-label">Événement</span><span id="cm-event-title">—</span></div>
+        <div class="cm-line"><span class="cm-label">Nom</span><span id="cm-fullname">—</span></div>
+        <div class="cm-line"><span class="cm-label">Email</span><span id="cm-email">—</span></div>
+        <div class="cm-line" id="cm-price-line"><span class="cm-label">Montant</span><span id="cm-price">—</span></div>
+      </div>
+      <div class="cm-actions">
+        <button id="cm-cancel" type="button" class="btn btn-secondary">Annuler</button>
+        <button id="cm-confirm" type="button" class="btn">Confirmer l'achat</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../js/utils/api.js"></script>
   <script src="../js/public/register.js" defer></script>

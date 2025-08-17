@@ -1,6 +1,9 @@
 'use strict';
 
 (function(){
+  // State
+  let currentEvent = null; // données de l'événement chargé
+  let pendingPayload = null; // payload en attente de confirmation
   function byId(id){ return document.getElementById(id); }
   function fmtDateRange(startISO, endISO){
     if (!startISO && !endISO) return '—';
@@ -68,6 +71,7 @@
         .maybeSingle();
       if (error) throw error;
       if (!data){ setState("Événement introuvable ou non publié.", 'error'); disableForm(); return; }
+      currentEvent = data;
 
       // Fill basics
       byId('event-title').textContent = data.title || 'Événement';
@@ -172,6 +176,46 @@
     return ok;
   }
 
+  function openConfirmModal(payload){
+    const modal = byId('confirm-modal');
+    if (!modal) return submitRegistration(payload); // fallback si pas de modal
+    pendingPayload = payload;
+    byId('cm-event-title').textContent = currentEvent?.title || '—';
+    byId('cm-fullname').textContent = payload.full_name || '—';
+    byId('cm-email').textContent = payload.email || '—';
+    const priceLine = byId('cm-price-line');
+    const price = (typeof currentEvent?.price_cents === 'number')
+      ? (currentEvent.price_cents/100).toFixed(2).replace('.', ',') + ' €' : '—';
+    byId('cm-price').textContent = price;
+    priceLine.hidden = !(currentEvent && currentEvent.ticket_type === 'paid');
+    modal.hidden = false;
+  }
+
+  function closeConfirmModal(){
+    const modal = byId('confirm-modal');
+    if (modal) modal.hidden = true;
+    pendingPayload = null;
+  }
+
+  async function submitRegistration(payload){
+    setLoading(true);
+    setFeedback('', 'info');
+    try{
+      const supa = window.AppAPI.getClient();
+      const { data, error } = await supa.functions.invoke('public_register', { body: payload });
+      if (error) throw error;
+      setFeedback('Inscription enregistrée. Vérifiez votre boîte mail si un billet/confirmation est envoyé.', 'info');
+      const form = byId('public-register-form');
+      form?.querySelectorAll('input,button').forEach(el=>el.disabled = true);
+      closeConfirmModal();
+    }catch(err){
+      console.error(err);
+      const msg = err?.message || 'Inscription impossible';
+      setFeedback(msg, 'error');
+      setLoading(false);
+    }
+  }
+
   async function onSubmit(e){
     e.preventDefault();
     if (!validate()) return;
@@ -189,27 +233,26 @@
       client_ip: null, // laissé à l’EF qui lira X-Forwarded-For
     };
 
-    setLoading(true);
-    setFeedback('', 'info');
-    try{
-      const supa = window.AppAPI.getClient();
-      // Edge Function to be implemented in step 6
-      const { data, error } = await supa.functions.invoke('public_register', { body: payload });
-      if (error) throw error;
-      setFeedback('Inscription enregistrée. Vérifiez votre boîte mail si un billet/confirmation est envoyé.', 'info');
-      // Disable to avoid double registration
-      form.querySelectorAll('input,button').forEach(el=>el.disabled = true);
-    }catch(err){
-      console.error(err);
-      const msg = err?.message || 'Inscription impossible';
-      setFeedback(msg, 'error');
-      setLoading(false);
+    // Si billet payant, afficher le modal de confirmation avant de soumettre
+    if (currentEvent && currentEvent.ticket_type === 'paid'){
+      openConfirmModal(payload);
+      return;
     }
+    // Gratuit → soumission directe
+    await submitRegistration(payload);
   }
 
   document.addEventListener('DOMContentLoaded', ()=>{
     loadEvent();
     const form = byId('public-register-form');
     form?.addEventListener('submit', onSubmit);
+    // Modal events
+    const modal = byId('confirm-modal');
+    const overlay = modal?.querySelector('.modal__overlay');
+    const btnCancel = byId('cm-cancel');
+    const btnConfirm = byId('cm-confirm');
+    overlay?.addEventListener('click', closeConfirmModal);
+    btnCancel?.addEventListener('click', closeConfirmModal);
+    btnConfirm?.addEventListener('click', ()=>{ if (pendingPayload) submitRegistration(pendingPayload); });
   });
 })();

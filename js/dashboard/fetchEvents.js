@@ -133,7 +133,7 @@ function openEventModal(e){
   const sales = `${fmtDate(e.sales_from)} → ${fmtDate(e.sales_until)}`;
   const salesOpen = e.is_open === true ? 'Ouvert' : (e.is_open === false ? 'Fermé' : '—');
   const remaining = (typeof e.capacity === 'number' && typeof e.registered_count === 'number') ? Math.max(0, e.capacity - e.registered_count) : null;
-  const publicUrl = (s === 'published' && e.slug) ? `${location.origin}/register.html?e=${encodeURIComponent(e.slug)}` : '';
+  const publicUrl = (s === 'published' && e.slug) ? `${location.origin}/html/register.html?e=${encodeURIComponent(e.slug)}` : '';
   body.innerHTML = `
     <h3>${e.title || 'Sans titre'} ${status}</h3>
     <div class="meta">${fmtDate(e.starts_at)} → ${fmtDate(e.ends_at)}</div>
@@ -168,7 +168,7 @@ function openEventModal(e){
       const recap = qs('#dash-pub-recap');
       if (!pm || !recap) return;
       const baseSlug = slugify(e.title || 'evenement');
-      const previewUrl = `${location.origin}/event/${baseSlug}`;
+      const previewUrl = `${location.origin}/html/register.html?e=${baseSlug}`;
       recap.innerHTML = `
         <div><strong>Titre:</strong> ${e.title || '—'}</div>
         <div><strong>Dates:</strong> ${fmtDate(e.starts_at)} → ${fmtDate(e.ends_at)}</div>
@@ -341,7 +341,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     try{
       const id = pm.dataset.eventId; const title = pm.dataset.eventTitle;
       const row = await publishEvent(id, title);
-      const publicUrl = row?.slug ? `${location.origin}/event/${row.slug}` : '';
+      const publicUrl = row?.slug ? `${location.origin}/html/register.html?e=${row.slug}` : '';
       toast(publicUrl ? `Événement publié: ${publicUrl}` : 'Événement publié');
       pm.setAttribute('hidden',''); document.body.style.overflow='';
       closeEventModal();

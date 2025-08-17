@@ -192,7 +192,41 @@
       ? (currentEvent.price_cents/100).toFixed(2).replace('.', ',') + ' €' : '—';
     byId('cm-price').textContent = price;
     priceLine.hidden = !(currentEvent && String(currentEvent.ticket_type||'').toLowerCase() === 'paid');
+    // Affichage inratable
     modal.hidden = false;
+    modal.classList.add('is-open');
+    modal.style.display = 'block';
+    console.debug('[register] confirm modal shown', modal);
+    // Fallback de visibilité si le contenu a une taille nulle
+    const rect = modal.querySelector('.modal__content')?.getBoundingClientRect();
+    if (!rect || (rect.width === 0 && rect.height === 0)){
+      console.warn('[register] modal content has zero size, forcing inline styles');
+      const contentEl = modal.querySelector('.modal__content');
+      if (contentEl){
+        Object.assign(contentEl.style, {
+          position: 'fixed',
+          left: '50%',
+          top: '50%',
+          transform: 'translate(-50%, -50%)',
+          maxWidth: '560px',
+          width: 'calc(100% - 32px)',
+          background: 'white',
+          border: '1px solid rgba(0,0,0,.12)',
+          borderRadius: '16px',
+          padding: '20px',
+          zIndex: '10000',
+          display: 'block',
+          opacity: '1',
+          visibility: 'visible',
+        });
+      }
+      const overlayEl = modal.querySelector('.modal__overlay');
+      if (overlayEl){
+        Object.assign(overlayEl.style, {
+          position: 'fixed', inset: '0', background: 'rgba(0,0,0,.45)', zIndex: '9999', display: 'block'
+        });
+      }
+    }
     setFeedback('Veuillez confirmer votre réservation dans la fenêtre.', 'info');
     // Mise en avant
     const content = modal.querySelector('.modal__content');
@@ -344,6 +378,9 @@
         }
       }
     });
+    // ESC pour fermer le modal de confirmation
+    document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') closeConfirmModal(); });
+
     // Thank modal events
     const tModal = byId('thank-modal');
     const tOverlay = tModal?.querySelector('.modal__overlay');

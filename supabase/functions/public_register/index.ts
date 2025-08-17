@@ -1,7 +1,8 @@
 // deno-lint-ignore-file no-explicit-any
-import { serve } from "std/http/server.ts";
-import { createClient } from "@supabase/supabase-js";
-import QRCode from "qrcode";
+/// <reference path="./types.d.ts" />
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2?deno";
+import QRCode from "https://esm.sh/qrcode@1.5.3?deno";
 
 // Helpers
 function corsHeaders() {

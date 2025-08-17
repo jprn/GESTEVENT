@@ -56,9 +56,19 @@ function renderCards(events, plan){
     const p = percent(e.registered_count||0, e.capacity||0);
     const card = document.createElement('article');
     card.className = 'card';
+    // Afficher un badge de statut pour distinguer brouillon vs publié
+    const statusBadge = e.status === 'draft'
+      ? '<span class="badge badge--draft" title="Cet événement n\'est pas publié">Brouillon</span>'
+      : '<span class="badge badge--published" title="Événement publié">Publié</span>';
+
+    // Lien public uniquement si publié (slug ou id utilisable)
+    const publicLink = (e.status === 'published')
+      ? `<a class="btn btn--ghost" href="./register.html?e=${encodeURIComponent(e.slug || e.id)}">Public</a>`
+      : `<button class="btn btn--ghost" disabled title="Non publié">Public</button>`;
+
     card.innerHTML = `
       <header>
-        <h3>${e.title || 'Sans titre'}</h3>
+        <h3>${e.title || 'Sans titre'} ${statusBadge}</h3>
         <div class="meta">${fmtDate(e.starts_at)} → ${fmtDate(e.ends_at)}</div>
       </header>
       <div class="grid">
@@ -71,7 +81,7 @@ function renderCards(events, plan){
       <div class="card__actions">
         <a class="btn" href="./create-event.html">Créer</a>
         <a class="btn btn--ghost" href="./create-event.html?e=${encodeURIComponent(e.id)}">Modifier</a>
-        <a class="btn btn--ghost" href="./register.html?e=${encodeURIComponent(e.slug || e.id)}">Public</a>
+        ${publicLink}
         <a class="btn btn--ghost" href="./checkin.html?e=${encodeURIComponent(e.id)}">Check‑in</a>
         <a class="btn btn--ghost" href="./participants.html?e=${encodeURIComponent(e.id)}">Participants</a>
         ${plan === 'pro' ?
@@ -126,7 +136,8 @@ async function fetchEvents(page){
   // Select explicit columns; consider creating a view with these aggregates
   const q = supa
     .from('events')
-    .select('id,title,slug,starts_at,ends_at,capacity,registered_count,checkin_count,revenue_cents', { count: 'exact' })
+    // Ajout de status pour distinguer brouillon vs publié
+    .select('id,title,slug,status,starts_at,ends_at,capacity,registered_count,checkin_count,revenue_cents', { count: 'exact' })
     .eq('owner_id', user.id)
     .order('starts_at', { ascending: false })
     .range(from, to);

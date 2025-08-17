@@ -38,6 +38,8 @@ a:hover{text-decoration:underline}
 .card__actions{display:flex;flex-wrap:wrap;gap:.5rem}
 .btn--danger{background:#e5484d}
 .badge{display:inline-block;background:var(--color-primary-10);color:var(--color-primary);border-radius:999px;padding:.1rem .5rem;font-size:var(--fs-12)}
+.badge--draft{background:#fff3cd;color:#8a6d3b;border:1px solid #ffe69c}
+.badge--published{background:#e6f4ea;color:#1e7f3b;border:1px solid #c8e6d0}
 
 /* Skeletons */
 .skeletons .card{position:relative}

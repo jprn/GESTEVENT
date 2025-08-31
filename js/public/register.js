@@ -182,6 +182,21 @@
     if (form) form.querySelectorAll('input,button').forEach(el=>el.disabled = true);
   }
 
+  function clearForm(){
+    const form = byId('public-register-form');
+    if (form) {
+      byId('pr-firstname').value = '';
+      byId('pr-lastname').value = '';
+      byId('pr-email').value = '';
+      byId('pr-phone').value = '';
+      byId('pr-rgpd').checked = false;
+      // Effacer les messages d'erreur
+      byId('err-firstname').textContent = '';
+      byId('err-lastname').textContent = '';
+      byId('err-email').textContent = '';
+    }
+  }
+
   function validate(){
     let ok = true;
     const fn = byId('pr-firstname');
@@ -317,8 +332,7 @@
         if (okCode === 'already_registered' || okCode === 'user_quota_reached'){
           console.log('[DEBUG] Success response with duplicate code:', okCode, 'Modal open:', modalOpen);
           setFeedback('Vous êtes déjà inscrit pour cet événement.', 'info');
-          const form = byId('public-register-form');
-          form?.querySelectorAll('input,button').forEach(el=>el.disabled = true);
+          clearForm();
           console.log('[DEBUG] About to close confirm modal');
           closeConfirmModal();
           console.log('[DEBUG] Modal closed, modalOpen now:', modalOpen);
@@ -342,10 +356,9 @@
       // Traitement spécial pour les erreurs Supabase Edge Functions
       if (err?.message?.includes('Edge Function returned a non-2xx status code')) {
         console.log('[DEBUG] Detected Edge Function non-2xx error, checking for duplicate registration');
-        // Forcer la fermeture du modal et traiter comme doublon potentiel
+        // Fermer le modal et vider le formulaire pour permettre une nouvelle inscription
         setFeedback('Vous êtes déjà inscrit pour cet événement.', 'info');
-        const form = byId('public-register-form');
-        form?.querySelectorAll('input,button').forEach(el=>el.disabled = true);
+        clearForm();
         closeConfirmModal();
         setLoading(false);
         return;
@@ -384,8 +397,7 @@
             .eq('status', 'confirmed');
           if (typeof dupCount === 'number' && dupCount > 0){
             setFeedback('Vous êtes déjà inscrit pour cet événement.', 'info');
-            const form = byId('public-register-form');
-            form?.querySelectorAll('input,button').forEach(el=>el.disabled = true);
+            clearForm();
             closeConfirmModal();
             setLoading(false);
             return;
@@ -402,9 +414,8 @@
       if (codeStr === 'already_registered' || codeStr === 'user_quota_reached' || looksDuplicate){
         console.log('[DEBUG] Error response with duplicate code/message:', codeStr, 'looksDuplicate:', looksDuplicate, 'Modal open:', modalOpen);
         setFeedback("Vous êtes déjà inscrit pour cet événement.", 'info');
-        const form = byId('public-register-form');
-        form?.querySelectorAll('input,button').forEach(el=>el.disabled = true);
-        // Fermer le modal de confirmation et afficher seulement un message d'information
+        clearForm();
+        // Fermer le modal de confirmation et vider le formulaire pour permettre une nouvelle inscription
         console.log('[DEBUG] About to close confirm modal (error path)');
         closeConfirmModal();
         console.log('[DEBUG] Modal closed (error path), modalOpen now:', modalOpen);

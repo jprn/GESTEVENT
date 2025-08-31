@@ -300,14 +300,17 @@
       const supa = window.AppAPI.getClient();
       const { data, error } = await supa.functions.invoke('public_register', { body: payload });
       if (error) throw error;
-      // Cas spécial: le backend peut renvoyer 200 avec code already_registered
-      if (data && String(data.code||'').toLowerCase() === 'already_registered'){
-        setFeedback('Vous êtes déjà inscrit pour cet événement.', 'info');
-        const form = byId('public-register-form');
-        form?.querySelectorAll('input,button').forEach(el=>el.disabled = true);
-        closeConfirmModal();
-        setLoading(false);
-        return;
+      // Cas spécial: le backend peut renvoyer 200 avec code already_registered / user_quota_reached
+      if (data){
+        const okCode = String(data.code||'').toLowerCase();
+        if (okCode === 'already_registered' || okCode === 'user_quota_reached'){
+          setFeedback('Vous êtes déjà inscrit pour cet événement.', 'info');
+          const form = byId('public-register-form');
+          form?.querySelectorAll('input,button').forEach(el=>el.disabled = true);
+          closeConfirmModal();
+          setLoading(false);
+          return;
+        }
       }
       setFeedback('Inscription enregistrée. Vérifiez votre boîte mail si un billet/confirmation est envoyé.', 'info');
       const form = byId('public-register-form');
@@ -369,7 +372,7 @@
       // Option A: considérer "déjà inscrit" comme un succès idempotent
       const codeStr = String(errCode||'').toLowerCase();
       const looksDuplicate = /deja|déjà|already|duplicate|unique/i.test(String(msg||''));
-      if (codeStr === 'already_registered' || looksDuplicate){
+      if (codeStr === 'already_registered' || codeStr === 'user_quota_reached' || looksDuplicate){
         setFeedback("Vous êtes déjà inscrit pour cet événement.", 'info');
         const form = byId('public-register-form');
         form?.querySelectorAll('input,button').forEach(el=>el.disabled = true);

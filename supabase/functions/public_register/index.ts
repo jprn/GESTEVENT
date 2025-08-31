@@ -34,7 +34,9 @@ function json(res: any, status = 200, code?: string) {
   if (!code && body && !body.code && typeof body.error === 'string') {
     body.code = slugify(body.error);
   }
-  return new Response(JSON.stringify(body), { status, headers: corsHeaders() });
+  const headers = corsHeaders();
+  headers['x-edge-version'] = 'public_register@2025-08-31-1';
+  return new Response(JSON.stringify(body), { status, headers });
 }
 
 function badRequest(msg: string, code?: string) { return json({ error: msg }, 400, code); }
@@ -56,6 +58,7 @@ async function sha256Hex(input: string): Promise<string> {
 }
 
 serve(async (req) => {
+  try {
   // CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders() });
@@ -67,7 +70,10 @@ serve(async (req) => {
   const SUPABASE_URL = Deno.env.get('SB_URL') || Deno.env.get('SUPABASE_URL');
   const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SB_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return serverError('Supabase env not set', 'env_missing');
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    console.error('[public_register] Missing env', { hasUrl: !!SUPABASE_URL, hasKey: !!SUPABASE_SERVICE_ROLE_KEY });
+    return serverError('Supabase env not set', 'env_missing');
+  }
 
   // Parse body
   let body: any = {};
@@ -117,7 +123,7 @@ serve(async (req) => {
     .eq('event_id', evt.id)
     .eq('email_lower', email)
     .eq('status', 'confirmed');
-  if (exErr) return serverError('Erreur vérification existants', 'db_check_error');
+  if (exErr) { console.error('[public_register] db_check_error', exErr); return serverError('Erreur vérification existants', 'db_check_error'); }
   const countExisting = (existing?.length ?? 0);
   if (evt.max_per_user && countExisting >= evt.max_per_user) return forbidden('Quota atteint pour cet email', 'user_quota_reached');
 
@@ -128,7 +134,7 @@ serve(async (req) => {
       .select('id', { count: 'exact', head: true })
       .eq('event_id', evt.id)
       .eq('status', 'confirmed');
-    if (aggErr) return serverError('Erreur comptage', 'db_count_error');
+    if (aggErr) { console.error('[public_register] db_count_error', aggErr); return serverError('Erreur comptage', 'db_count_error'); }
     if (typeof partCount === 'number' && partCount >= evt.capacity) return forbidden('Complet', 'sold_out');
   }
 
@@ -153,6 +159,7 @@ serve(async (req) => {
     if (code === '23505' || msg.includes('duplicate') || msg.includes('unique')) {
       return forbidden('Déjà inscrit pour cet événement', 'already_registered');
     }
+    console.error('[public_register] participant_create_failed', insErr);
     return serverError('Impossible de créer le participant', 'participant_create_failed');
   }
   const participantId = inserted.id;
@@ -168,10 +175,11 @@ serve(async (req) => {
   if (upErr) {
     // Cleanup participant if needed
     await supa.from('participants').delete().eq('id', participantId);
+    console.error('[public_register] qr_upload_failed', upErr);
     return serverError('Échec upload QR', 'qr_upload_failed');
   }
   const { data: signed, error: signErr } = await supa.storage.from('tickets').createSignedUrl(path, 60*60*24);
-  if (signErr) return serverError('Échec signature URL', 'qr_sign_failed');
+  if (signErr) { console.error('[public_register] qr_sign_failed', signErr); return serverError('Échec signature URL', 'qr_sign_failed'); }
   const qrUrl = signed?.signedUrl || '';
 
   // Update participant with QR URL
@@ -211,4 +219,8 @@ serve(async (req) => {
   } catch {/* ignore email errors */}
 
   return json({ participant_id: participantId });
+  } catch(err) {
+    console.error('[public_register] unhandled_error', err);
+    return serverError('Erreur interne', 'unhandled_error');
+  }
 });

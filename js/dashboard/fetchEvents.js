@@ -94,6 +94,7 @@ function renderCards(events, plan){
     const card = document.createElement('article');
     const statusClass = s === 'draft' ? 'card--draft' : (s === 'published' ? 'card--published' : '');
     card.className = `card card--compact ${statusClass}`.trim();
+    card.dataset.eventId = e.id;
     let statusBadge = '';
     if (s === 'draft') statusBadge = '<span class="badge badge--draft">Brouillon</span>';
     else if (s === 'published') statusBadge = '<span class="badge badge--published">Publié</span>';
@@ -372,6 +373,22 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     finally{ btn.disabled = false; }
   });
   await loadPage(1);
+  // Realtime: actualiser les compteurs d'inscrits lors des insertions/suppressions
+  try{
+    const supa = window.AppAPI.getClient();
+    const onChange = (payload)=>{
+      // Rafraîchit silencieusement la page courante pour mettre à jour les compteurs
+      // (simple et fiable; on peut optimiser plus tard si nécessaire)
+      loadPage(state.page);
+    };
+    const channel = supa
+      .channel('dash-participants')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'participants' }, onChange)
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'participants' }, onChange)
+      .subscribe((status)=>{ try{ console.debug('Realtime status:', status); }catch{} });
+    // Nettoyage à la fermeture
+    window.addEventListener('beforeunload', ()=>{ try{ supa.removeChannel(channel); }catch{} });
+  }catch(err){ console.warn('Realtime non initialisé', err); }
   // Show success toast if coming from wizard
   try{
     const msg = localStorage.getItem('dashboard_toast');

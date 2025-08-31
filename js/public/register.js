@@ -319,6 +319,19 @@
       }catch(parseErr){ console.warn('Failed to parse error body', parseErr); }
       const uiMsg = mapErrorCode(errCode, msg);
       console.log(`%c${uiMsg} (${errCode||'no-code'})`, 'background: #f0f0f0; border-radius: 5px; padding: 2px; color: #666');
+
+      // Option A: considérer "déjà inscrit" comme un succès idempotent
+      if (String(errCode||'').toLowerCase() === 'already_registered'){
+        setFeedback("Vous êtes déjà inscrit pour cet événement.", 'info');
+        const form = byId('public-register-form');
+        form?.querySelectorAll('input,button').forEach(el=>el.disabled = true);
+        closeConfirmModal();
+        openThankModal();
+        setTimeout(tryClosePage, 2500);
+        setLoading(false);
+        return;
+      }
+
       setFeedback(uiMsg, 'error');
       setLoading(false);
     }

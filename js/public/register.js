@@ -302,18 +302,24 @@
       console.error('[public_register] invoke error', err);
       let msg = err?.message || 'Inscription impossible';
       let errCode = undefined;
+      let status = undefined;
       try{
         // Supabase JS place la réponse dans err.context.response (Edge Functions)
-        const resp = err?.context?.response;
+        const resp = err?.context?.response || err?.response || err?.cause?.response;
         if (resp) {
+          status = resp.status;
           const ct = resp.headers?.get?.('content-type') || '';
           if (ct.includes('application/json')){
             const j = await resp.json();
             if (j && (j.error || j.message)) msg = j.error || j.message;
             if (j && j.code) errCode = j.code;
           } else {
-            const t = await resp.text();
-            if (t) msg = t.slice(0, 500);
+            // Tenter JSON même si le header est manquant/incorrect
+            const raw = await resp.text();
+            if (raw) {
+              try{ const j = JSON.parse(raw); if (j){ if (j.error||j.message) msg = j.error||j.message; if (j.code) errCode = j.code; }
+              }catch{ msg = raw.slice(0, 500); }
+            }
           }
         }
       }catch(parseErr){ console.warn('Failed to parse error body', parseErr); }
@@ -321,7 +327,9 @@
       console.log(`%c${uiMsg} (${errCode||'no-code'})`, 'background: #f0f0f0; border-radius: 5px; padding: 2px; color: #666');
 
       // Option A: considérer "déjà inscrit" comme un succès idempotent
-      if (String(errCode||'').toLowerCase() === 'already_registered'){
+      const codeStr = String(errCode||'').toLowerCase();
+      const looksDuplicate = /deja|déjà|already|duplicate|unique/i.test(String(msg||''));
+      if (codeStr === 'already_registered' || (!errCode && status === 403 && looksDuplicate)){
         setFeedback("Vous êtes déjà inscrit pour cet événement.", 'info');
         const form = byId('public-register-form');
         form?.querySelectorAll('input,button').forEach(el=>el.disabled = true);

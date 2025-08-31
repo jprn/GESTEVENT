@@ -292,6 +292,25 @@ async function fetchEvents(page){
   }
 }
 
+// Compléter les compteurs d'inscrits côté client si l'agrégat n'est pas disponible
+async function fillRegisteredCountsIfMissing(rows){
+  const supa = window.AppAPI.getClient();
+  const tasks = rows.map(async (e)=>{
+    if (typeof e.registered_count === 'number') return e;
+    try{
+      const { count } = await supa
+        .from('participants')
+        .select('id', { head: true, count: 'exact' })
+        .eq('event_id', e.id)
+        .eq('status', 'confirmed');
+      e.registered_count = typeof count === 'number' ? count : 0;
+    }catch{ e.registered_count = e.registered_count ?? 0; }
+    return e;
+  });
+  await Promise.all(tasks);
+  return rows;
+}
+
 function updateStats(rows){
   const totals = rows.reduce((acc, e)=>{
     acc.events += 1;
@@ -317,7 +336,9 @@ async function loadPage(page){
   hide(grid); hide(empty); show(sk);
   renderSkeletons();
   try{
-    const { rows, total } = await fetchEvents(page);
+    let { rows, total } = await fetchEvents(page);
+    // Fallback: calculer les inscrits si l'agrégat manque
+    rows = await fillRegisteredCountsIfMissing(rows);
     try{ console.table(rows.map(r=>({ id:r.id, title:r.title, status:r.status, slug:r.slug }))); }catch{}
     state.total = total;
     sk.innerHTML = '';
@@ -372,14 +393,19 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     }catch(err){ console.error(err); toast('Erreur publication', 'error'); }
     finally{ btn.disabled = false; }
   });
+
   await loadPage(1);
   // Realtime: actualiser les compteurs d'inscrits lors des insertions/suppressions
   try{
     const supa = window.AppAPI.getClient();
     const onChange = (payload)=>{
-      // Rafraîchit silencieusement la page courante pour mettre à jour les compteurs
-      // (simple et fiable; on peut optimiser plus tard si nécessaire)
-      loadPage(state.page);
+      try{ console.debug('Realtime participants change:', payload?.eventType, payload?.new || payload?.old); }catch{}
+      // Ne recharger que si l'event_id est actuellement affiché sur la page
+      const ids = Array.from(document.querySelectorAll('#events-grid [data-event-id]')).map(el=>el.dataset.eventId);
+      const changedEventId = String((payload?.new?.event_id ?? payload?.old?.event_id) || '');
+      if (changedEventId && ids.includes(changedEventId)){
+        loadPage(state.page);
+      }
     };
     const channel = supa
       .channel('dash-participants')
@@ -389,6 +415,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     // Nettoyage à la fermeture
     window.addEventListener('beforeunload', ()=>{ try{ supa.removeChannel(channel); }catch{} });
   }catch(err){ console.warn('Realtime non initialisé', err); }
+
   // Show success toast if coming from wizard
   try{
     const msg = localStorage.getItem('dashboard_toast');

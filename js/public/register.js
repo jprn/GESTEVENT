@@ -247,8 +247,12 @@
 
   function openConfirmModal(payload){
     const modal = byId('confirm-modal');
-    if (!modal) return submitRegistration(payload); // fallback si pas de modal
+    if (!modal) {
+      console.error('[register] Modal not found, submitting directly');
+      return submitRegistration(payload); // fallback si pas de modal
+    }
     
+    console.log('[DEBUG] Opening confirm modal for new participant');
     pendingPayload = payload;
     modalOpen = true;
     byId('cm-event-title').textContent = currentEvent?.title || '—';
@@ -493,17 +497,24 @@
         
         if (typeof dupCount === 'number' && dupCount > 0) {
           // Doublon détecté - afficher message et vider formulaire (PAS de modal)
+          console.log('[DEBUG] Duplicate participant detected, showing message and clearing form');
           setFeedback('Vous êtes déjà inscrit pour cet événement.', 'info');
           clearForm();
           return;
         }
+        
+        // Pas de doublon - ouvrir le modal de confirmation
+        console.log('[DEBUG] New participant, opening confirmation modal');
+        openConfirmModal(payload);
       } catch (err) {
         console.warn('Failed to check existing participant:', err);
+        // En cas d'erreur, ouvrir quand même le modal
+        openConfirmModal(payload);
       }
+    } else {
+      // Pas d'événement ou d'email, ouvrir le modal par défaut
+      openConfirmModal(payload);
     }
-    
-    // Pas de doublon - ouvrir le modal de confirmation
-    openConfirmModal(payload);
   }
 
   document.addEventListener('DOMContentLoaded', ()=>{

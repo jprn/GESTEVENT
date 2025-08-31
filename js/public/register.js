@@ -259,6 +259,7 @@
 
   function closeConfirmModal(){
     const modal = byId('confirm-modal');
+    console.log('[DEBUG] closeConfirmModal called, modal found:', !!modal, 'modalOpen was:', modalOpen);
     if (modal){
       // Hide and reset any forced inline styles applied during fallback
       modal.hidden = true;
@@ -268,9 +269,11 @@
       const overlayEl = modal.querySelector('.modal__overlay');
       contentEl?.removeAttribute('style');
       overlayEl?.removeAttribute('style');
+      console.log('[DEBUG] Modal properties set: hidden=true, display=none, class removed');
     }
     pendingPayload = null;
     modalOpen = false;
+    console.log('[DEBUG] closeConfirmModal finished, modalOpen now:', modalOpen);
   }
 
   function openThankModal(){
@@ -304,10 +307,13 @@
       if (data){
         const okCode = String(data.code||'').toLowerCase();
         if (okCode === 'already_registered' || okCode === 'user_quota_reached'){
+          console.log('[DEBUG] Success response with duplicate code:', okCode, 'Modal open:', modalOpen);
           setFeedback('Vous êtes déjà inscrit pour cet événement.', 'info');
           const form = byId('public-register-form');
           form?.querySelectorAll('input,button').forEach(el=>el.disabled = true);
+          console.log('[DEBUG] About to close confirm modal');
           closeConfirmModal();
+          console.log('[DEBUG] Modal closed, modalOpen now:', modalOpen);
           setLoading(false);
           return;
         }
@@ -373,11 +379,14 @@
       const codeStr = String(errCode||'').toLowerCase();
       const looksDuplicate = /deja|déjà|already|duplicate|unique/i.test(String(msg||''));
       if (codeStr === 'already_registered' || codeStr === 'user_quota_reached' || looksDuplicate){
+        console.log('[DEBUG] Error response with duplicate code/message:', codeStr, 'looksDuplicate:', looksDuplicate, 'Modal open:', modalOpen);
         setFeedback("Vous êtes déjà inscrit pour cet événement.", 'info');
         const form = byId('public-register-form');
         form?.querySelectorAll('input,button').forEach(el=>el.disabled = true);
         // Fermer le modal de confirmation et afficher seulement un message d'information
+        console.log('[DEBUG] About to close confirm modal (error path)');
         closeConfirmModal();
+        console.log('[DEBUG] Modal closed (error path), modalOpen now:', modalOpen);
         setLoading(false);
         return;
       }

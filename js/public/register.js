@@ -51,6 +51,28 @@
     btn.classList.toggle('loading', !!loading);
   }
 
+  function mapErrorCode(code, fallback){
+    switch(String(code||'').toLowerCase()){
+      case 'env_missing': return "Configuration interne manquante. Réessayez plus tard.";
+      case 'invalid_json': return "Requête invalide. Merci de recharger la page et réessayer.";
+      case 'slug_required': return "Lien d'inscription invalide (slug manquant).";
+      case 'full_name_required': return "Le nom complet est requis.";
+      case 'email_required': return "L'email est requis.";
+      case 'event_not_found': return "Événement introuvable.";
+      case 'event_not_published': return "Événement non publié.";
+      case 'registrations_closed': return "Inscriptions fermées.";
+      case 'registrations_not_open_yet': return "Inscriptions pas encore ouvertes.";
+      case 'registrations_closed_period': return "Inscriptions clôturées.";
+      case 'user_quota_reached': return "Quota atteint pour cet email.";
+      case 'sold_out': return "Complet.";
+      case 'already_registered': return "Vous êtes déjà inscrit pour cet événement.";
+      case 'participant_create_failed': return "Impossible d'enregistrer votre inscription. Réessayez plus tard.";
+      case 'qr_upload_failed': return "Inscription enregistrée mais échec de génération du billet. Support informé.";
+      case 'qr_sign_failed': return "Échec de génération du billet. Réessayez plus tard.";
+      default: return fallback || "Inscription impossible";
+    }
+  }
+
   async function loadEvent(){
     const params = new URLSearchParams(location.search);
     const slug = params.get('e');
@@ -279,6 +301,7 @@
     }catch(err){
       console.error('[public_register] invoke error', err);
       let msg = err?.message || 'Inscription impossible';
+      let errCode = undefined;
       try{
         // Supabase JS place la réponse dans err.context.response (Edge Functions)
         const resp = err?.context?.response;
@@ -287,14 +310,16 @@
           if (ct.includes('application/json')){
             const j = await resp.json();
             if (j && (j.error || j.message)) msg = j.error || j.message;
+            if (j && j.code) errCode = j.code;
           } else {
             const t = await resp.text();
             if (t) msg = t.slice(0, 500);
           }
         }
       }catch(parseErr){ console.warn('Failed to parse error body', parseErr); }
-      console.log(`%c${msg}`, 'background: #f0f0f0; border-radius: 5px; padding: 2px; color: #666');
-      setFeedback(msg, 'error');
+      const uiMsg = mapErrorCode(errCode, msg);
+      console.log(`%c${uiMsg} (${errCode||'no-code'})`, 'background: #f0f0f0; border-radius: 5px; padding: 2px; color: #666');
+      setFeedback(uiMsg, 'error');
       setLoading(false);
     }
   }

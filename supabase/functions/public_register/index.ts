@@ -14,14 +14,32 @@ function corsHeaders() {
   } as Record<string, string>;
 }
 
-function json(res: any, status = 200) {
-  return new Response(JSON.stringify(res), { status, headers: corsHeaders() });
+function slugify(str: string){
+  try{
+    return (str || '')
+      .normalize('NFD')
+      .replace(/\p{Diacritic}/gu, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 80);
+  }catch{ return 'error'; }
 }
 
-function badRequest(msg: string) { return json({ error: msg }, 400); }
-function forbidden(msg: string) { return json({ error: msg }, 403); }
-function tooMany(msg: string) { return json({ error: msg }, 429); }
-function serverError(msg: string) { return json({ error: msg }, 500); }
+function json(res: any, status = 200, code?: string) {
+  const body = (res && typeof res === 'object') ? { ...res } : { data: res };
+  if (code && !body.code) body.code = code;
+  // If it's an error without explicit code, infer one from message
+  if (!code && body && !body.code && typeof body.error === 'string') {
+    body.code = slugify(body.error);
+  }
+  return new Response(JSON.stringify(body), { status, headers: corsHeaders() });
+}
+
+function badRequest(msg: string, code?: string) { return json({ error: msg }, 400, code); }
+function forbidden(msg: string, code?: string) { return json({ error: msg }, 403, code); }
+function tooMany(msg: string, code?: string) { return json({ error: msg }, 429, code); }
+function serverError(msg: string, code?: string) { return json({ error: msg }, 500, code); }
 
 function getIP(req: Request, fallback?: string) {
   const h = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip");
@@ -48,19 +66,19 @@ serve(async (req) => {
   const SUPABASE_URL = Deno.env.get('SB_URL') || Deno.env.get('SUPABASE_URL');
   const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SB_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return serverError('Supabase env not set');
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return serverError('Supabase env not set', 'env_missing');
 
   // Parse body
   let body: any = {};
-  try { body = await req.json(); } catch { return badRequest('Invalid JSON'); }
+  try { body = await req.json(); } catch { return badRequest('Invalid JSON', 'invalid_json'); }
   const slug = (body.slug || '').toString().trim();
   const full_name = (body.full_name || `${body.firstname||''} ${body.lastname||''}`).toString().trim();
   const email = (body.email || '').toString().trim().toLowerCase();
   const phone = (body.phone || null) ? String(body.phone) : null;
   const client_ip = (body.client_ip || getIP(req)).toString();
-  if (!slug) return badRequest('slug required');
-  if (!full_name) return badRequest('full_name required');
-  if (!email) return badRequest('email required');
+  if (!slug) return badRequest('slug required', 'slug_required');
+  if (!full_name) return badRequest('full_name required', 'full_name_required');
+  if (!email) return badRequest('email required', 'email_required');
 
   const supa = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
 
@@ -84,12 +102,12 @@ serve(async (req) => {
     .select('id, title, status, is_open, sales_from, sales_until, capacity, max_per_user, slug')
     .eq('slug', slug)
     .single();
-  if (evtErr || !evt) return badRequest('Événement introuvable');
-  if (String(evt.status).toLowerCase() !== 'published') return forbidden('Événement non publié');
-  if (evt.is_open === false) return forbidden('Inscriptions fermées');
+  if (evtErr || !evt) return badRequest('Événement introuvable', 'event_not_found');
+  if (String(evt.status).toLowerCase() !== 'published') return forbidden('Événement non publié', 'event_not_published');
+  if (evt.is_open === false) return forbidden('Inscriptions fermées', 'registrations_closed');
   const now = Date.now();
-  if (evt.sales_from && new Date(evt.sales_from).getTime() > now) return forbidden('Inscriptions pas encore ouvertes');
-  if (evt.sales_until && new Date(evt.sales_until).getTime() < now) return forbidden('Inscriptions clôturées');
+  if (evt.sales_from && new Date(evt.sales_from).getTime() > now) return forbidden('Inscriptions pas encore ouvertes', 'registrations_not_open_yet');
+  if (evt.sales_until && new Date(evt.sales_until).getTime() < now) return forbidden('Inscriptions clôturées', 'registrations_closed_period');
 
   // Duplicate per email/event and max_per_user
   const { data: existing, error: exErr } = await supa
@@ -98,9 +116,9 @@ serve(async (req) => {
     .eq('event_id', evt.id)
     .eq('email_lower', email)
     .eq('status', 'confirmed');
-  if (exErr) return serverError('Erreur vérification existants');
+  if (exErr) return serverError('Erreur vérification existants', 'db_check_error');
   const countExisting = (existing?.length ?? 0);
-  if (evt.max_per_user && countExisting >= evt.max_per_user) return forbidden('Quota atteint pour cet email');
+  if (evt.max_per_user && countExisting >= evt.max_per_user) return forbidden('Quota atteint pour cet email', 'user_quota_reached');
 
   // Remaining capacity check (if capacity set)
   if (evt.capacity && evt.capacity > 0) {
@@ -109,8 +127,8 @@ serve(async (req) => {
       .select('id', { count: 'exact', head: true })
       .eq('event_id', evt.id)
       .eq('status', 'confirmed');
-    if (aggErr) return serverError('Erreur comptage');
-    if (typeof partCount === 'number' && partCount >= evt.capacity) return forbidden('Complet');
+    if (aggErr) return serverError('Erreur comptage', 'db_count_error');
+    if (typeof partCount === 'number' && partCount >= evt.capacity) return forbidden('Complet', 'sold_out');
   }
 
   // Create participant: rely on a unique constraint (event_id, email_lower) to avoid duplicates under race
@@ -132,9 +150,9 @@ serve(async (req) => {
     const code = (insErr as any)?.code;
     const msg = String((insErr as any)?.message || '').toLowerCase();
     if (code === '23505' || msg.includes('duplicate') || msg.includes('unique')) {
-      return forbidden('Déjà inscrit pour cet événement');
+      return forbidden('Déjà inscrit pour cet événement', 'already_registered');
     }
-    return serverError('Impossible de créer le participant');
+    return serverError('Impossible de créer le participant', 'participant_create_failed');
   }
   const participantId = inserted.id;
 
@@ -149,10 +167,10 @@ serve(async (req) => {
   if (upErr) {
     // Cleanup participant if needed
     await supa.from('participants').delete().eq('id', participantId);
-    return serverError('Échec upload QR');
+    return serverError('Échec upload QR', 'qr_upload_failed');
   }
   const { data: signed, error: signErr } = await supa.storage.from('tickets').createSignedUrl(path, 60*60*24);
-  if (signErr) return serverError('Échec signature URL');
+  if (signErr) return serverError('Échec signature URL', 'qr_sign_failed');
   const qrUrl = signed?.signedUrl || '';
 
   // Update participant with QR URL

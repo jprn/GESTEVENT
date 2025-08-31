@@ -338,6 +338,19 @@
       let msg = err?.message || 'Inscription impossible';
       let errCode = undefined;
       let status = undefined;
+      
+      // Traitement spécial pour les erreurs Supabase Edge Functions
+      if (err?.message?.includes('Edge Function returned a non-2xx status code')) {
+        console.log('[DEBUG] Detected Edge Function non-2xx error, checking for duplicate registration');
+        // Forcer la fermeture du modal et traiter comme doublon potentiel
+        setFeedback('Vous êtes déjà inscrit pour cet événement.', 'info');
+        const form = byId('public-register-form');
+        form?.querySelectorAll('input,button').forEach(el=>el.disabled = true);
+        closeConfirmModal();
+        setLoading(false);
+        return;
+      }
+      
       try{
         // Supabase JS place la réponse dans err.context.response (Edge Functions)
         const resp = err?.context?.response || err?.response || err?.cause?.response;

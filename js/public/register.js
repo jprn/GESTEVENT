@@ -333,9 +333,8 @@
         setFeedback("Vous êtes déjà inscrit pour cet événement.", 'info');
         const form = byId('public-register-form');
         form?.querySelectorAll('input,button').forEach(el=>el.disabled = true);
+        // Fermer le modal de confirmation et afficher seulement un message d'information
         closeConfirmModal();
-        openThankModal();
-        setTimeout(tryClosePage, 2500);
         setLoading(false);
         return;
       }

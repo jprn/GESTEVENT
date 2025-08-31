@@ -291,6 +291,15 @@
       const supa = window.AppAPI.getClient();
       const { data, error } = await supa.functions.invoke('public_register', { body: payload });
       if (error) throw error;
+      // Cas spécial: le backend peut renvoyer 200 avec code already_registered
+      if (data && String(data.code||'').toLowerCase() === 'already_registered'){
+        setFeedback('Vous êtes déjà inscrit pour cet événement.', 'info');
+        const form = byId('public-register-form');
+        form?.querySelectorAll('input,button').forEach(el=>el.disabled = true);
+        closeConfirmModal();
+        setLoading(false);
+        return;
+      }
       setFeedback('Inscription enregistrée. Vérifiez votre boîte mail si un billet/confirmation est envoyé.', 'info');
       const form = byId('public-register-form');
       form?.querySelectorAll('input,button').forEach(el=>el.disabled = true);

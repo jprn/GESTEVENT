@@ -197,6 +197,35 @@
     }
   }
 
+  async function updateRemainingPlaces(){
+    if (!currentEvent || !currentEvent.show_remaining || typeof currentEvent.capacity !== 'number' || currentEvent.capacity <= 0) {
+      return; // Pas d'affichage des places restantes configuré
+    }
+    
+    try {
+      const supa = window.AppAPI.getClient();
+      const { count } = await supa
+        .from('participants')
+        .select('id', { head: true, count: 'exact' })
+        .eq('event_id', currentEvent.id)
+        .eq('status', 'confirmed');
+      
+      if (typeof count === 'number') {
+        const remaining = Math.max(0, currentEvent.capacity - count);
+        const remainingEl = byId('event-remaining');
+        const remainingBox = byId('remaining-box');
+        
+        if (remainingEl && remainingBox) {
+          remainingEl.textContent = String(remaining);
+          remainingBox.hidden = false;
+          console.log('[DEBUG] Updated remaining places:', remaining);
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to update remaining places:', err);
+    }
+  }
+
   function validate(){
     let ok = true;
     const fn = byId('pr-firstname');
@@ -216,9 +245,34 @@
     return ok;
   }
 
-  function openConfirmModal(payload){
+  async function openConfirmModal(payload){
     const modal = byId('confirm-modal');
     if (!modal) return submitRegistration(payload); // fallback si pas de modal
+    
+    // Vérifier d'abord si l'utilisateur existe déjà
+    if (currentEvent && payload.email) {
+      try {
+        const supa = window.AppAPI.getClient();
+        const emailLower = payload.email.trim().toLowerCase();
+        const { count: dupCount } = await supa
+          .from('participants')
+          .select('id', { head: true, count: 'exact' })
+          .eq('event_id', currentEvent.id)
+          .eq('email_lower', emailLower)
+          .eq('status', 'confirmed');
+        
+        if (typeof dupCount === 'number' && dupCount > 0) {
+          // Utilisateur déjà inscrit - traiter comme doublon
+          setFeedback('Vous êtes déjà inscrit pour cet événement.', 'info');
+          clearForm();
+          return;
+        }
+      } catch (err) {
+        console.warn('Failed to check existing participant:', err);
+        // Continuer avec l'ouverture du modal en cas d'erreur de vérification
+      }
+    }
+    
     pendingPayload = payload;
     modalOpen = true;
     byId('cm-event-title').textContent = currentEvent?.title || '—';
@@ -343,6 +397,8 @@
       setFeedback('Inscription enregistrée. Vérifiez votre boîte mail si un billet/confirmation est envoyé.', 'info');
       const form = byId('public-register-form');
       form?.querySelectorAll('input,button').forEach(el=>el.disabled = true);
+      // Mettre à jour le nombre de places restantes
+      await updateRemainingPlaces();
       closeConfirmModal();
       openThankModal();
       // Fermeture automatique après un court délai
@@ -460,9 +516,9 @@
       openConfirmModal(payload);
       return;
     }
-    // Gratuit → valider puis soumettre
+    // Gratuit → valider puis ouvrir le modal de confirmation
     if (!validate()) return;
-    await submitRegistration(payload);
+    openConfirmModal(payload);
   }
 
   document.addEventListener('DOMContentLoaded', ()=>{

@@ -259,7 +259,16 @@
 
   function closeConfirmModal(){
     const modal = byId('confirm-modal');
-    if (modal) modal.hidden = true;
+    if (modal){
+      // Hide and reset any forced inline styles applied during fallback
+      modal.hidden = true;
+      modal.classList.remove('is-open');
+      modal.style.display = 'none';
+      const contentEl = modal.querySelector('.modal__content');
+      const overlayEl = modal.querySelector('.modal__overlay');
+      contentEl?.removeAttribute('style');
+      overlayEl?.removeAttribute('style');
+    }
     pendingPayload = null;
     modalOpen = false;
   }
@@ -332,6 +341,28 @@
           }
         }
       }catch(parseErr){ console.warn('Failed to parse error body', parseErr); }
+      // Fallback robuste: si 403 sans code clair, vérifier en base si le participant existe déjà
+      if (status === 403 && !errCode && currentEvent && byId('pr-email')){
+        try{
+          const supa = window.AppAPI.getClient();
+          const emailLower = byId('pr-email').value.trim().toLowerCase();
+          const { count: dupCount } = await supa
+            .from('participants')
+            .select('id', { head: true, count: 'exact' })
+            .eq('event_id', currentEvent.id)
+            .eq('email_lower', emailLower)
+            .eq('status', 'confirmed');
+          if (typeof dupCount === 'number' && dupCount > 0){
+            setFeedback('Vous êtes déjà inscrit pour cet événement.', 'info');
+            const form = byId('public-register-form');
+            form?.querySelectorAll('input,button').forEach(el=>el.disabled = true);
+            closeConfirmModal();
+            setLoading(false);
+            return;
+          }
+        }catch{ /* ignore */ }
+      }
+
       const uiMsg = mapErrorCode(errCode, msg);
       console.log(`%c${uiMsg} (${errCode||'no-code'})`, 'background: #f0f0f0; border-radius: 5px; padding: 2px; color: #666');
 

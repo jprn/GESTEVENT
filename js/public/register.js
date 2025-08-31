@@ -261,15 +261,23 @@
     const modal = byId('confirm-modal');
     console.log('[DEBUG] closeConfirmModal called, modal found:', !!modal, 'modalOpen was:', modalOpen);
     if (modal){
-      // Hide and reset any forced inline styles applied during fallback
+      // Force hide with multiple methods to override any CSS conflicts
       modal.hidden = true;
       modal.classList.remove('is-open');
-      modal.style.display = 'none';
+      modal.style.display = 'none !important';
+      modal.style.visibility = 'hidden';
+      modal.style.opacity = '0';
+      modal.style.pointerEvents = 'none';
+      modal.style.zIndex = '-1';
       const contentEl = modal.querySelector('.modal__content');
       const overlayEl = modal.querySelector('.modal__overlay');
-      contentEl?.removeAttribute('style');
-      overlayEl?.removeAttribute('style');
-      console.log('[DEBUG] Modal properties set: hidden=true, display=none, class removed');
+      if (contentEl) {
+        contentEl.style.display = 'none';
+      }
+      if (overlayEl) {
+        overlayEl.style.display = 'none';
+      }
+      console.log('[DEBUG] Modal forcefully hidden with multiple CSS properties');
     }
     pendingPayload = null;
     modalOpen = false;

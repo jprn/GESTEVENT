@@ -277,8 +277,23 @@
       // Fermeture automatique après un court délai
       setTimeout(tryClosePage, 2500);
     }catch(err){
-      console.error(err);
-      const msg = err?.message || 'Inscription impossible';
+      console.error('[public_register] invoke error', err);
+      let msg = err?.message || 'Inscription impossible';
+      try{
+        // Supabase JS place la réponse dans err.context.response (Edge Functions)
+        const resp = err?.context?.response;
+        if (resp) {
+          const ct = resp.headers?.get?.('content-type') || '';
+          if (ct.includes('application/json')){
+            const j = await resp.json();
+            if (j && (j.error || j.message)) msg = j.error || j.message;
+          } else {
+            const t = await resp.text();
+            if (t) msg = t.slice(0, 500);
+          }
+        }
+      }catch(parseErr){ console.warn('Failed to parse error body', parseErr); }
+      console.log(`%c${msg}`, 'background: #f0f0f0; border-radius: 5px; padding: 2px; color: #666');
       setFeedback(msg, 'error');
       setLoading(false);
     }

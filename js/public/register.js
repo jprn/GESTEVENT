@@ -245,33 +245,9 @@
     return ok;
   }
 
-  async function openConfirmModal(payload){
+  function openConfirmModal(payload){
     const modal = byId('confirm-modal');
     if (!modal) return submitRegistration(payload); // fallback si pas de modal
-    
-    // Vérifier d'abord si l'utilisateur existe déjà
-    if (currentEvent && payload.email) {
-      try {
-        const supa = window.AppAPI.getClient();
-        const emailLower = payload.email.trim().toLowerCase();
-        const { count: dupCount } = await supa
-          .from('participants')
-          .select('id', { head: true, count: 'exact' })
-          .eq('event_id', currentEvent.id)
-          .eq('email_lower', emailLower)
-          .eq('status', 'confirmed');
-        
-        if (typeof dupCount === 'number' && dupCount > 0) {
-          // Utilisateur déjà inscrit - traiter comme doublon
-          setFeedback('Vous êtes déjà inscrit pour cet événement.', 'info');
-          clearForm();
-          return;
-        }
-      } catch (err) {
-        console.warn('Failed to check existing participant:', err);
-        // Continuer avec l'ouverture du modal en cas d'erreur de vérification
-      }
-    }
     
     pendingPayload = payload;
     modalOpen = true;
@@ -500,24 +476,33 @@
       client_ip: null, // laissé à l’EF qui lira X-Forwarded-For
     };
 
-    // Si billet payant, ouvrir le modal AVANT validation (Option B)
-    if (currentEvent && String(currentEvent.ticket_type||'').toLowerCase() === 'paid'){
-      if (!modalOpen){
-        console.debug('[register] paid flow: opening confirm modal');
-        openConfirmModal(payload);
-      }
-      return;
-    }
-    // Fallback: si currentEvent pas encore prêt mais bouton indique "Réserver un billet", ouvrir quand même le modal
-    const btn = byId('pr-submit');
-    const label = btn?.querySelector('.btn-text')?.textContent?.trim().toLowerCase();
-    if (!currentEvent && label && label.includes('réserver un billet')){
-      console.debug('[register] fallback paid flow via button label');
-      openConfirmModal(payload);
-      return;
-    }
-    // Gratuit → valider puis ouvrir le modal de confirmation
+    // Valider le formulaire d'abord
     if (!validate()) return;
+    
+    // Vérifier si l'utilisateur existe déjà
+    if (currentEvent && payload.email) {
+      try {
+        const supa = window.AppAPI.getClient();
+        const emailLower = payload.email.trim().toLowerCase();
+        const { count: dupCount } = await supa
+          .from('participants')
+          .select('id', { head: true, count: 'exact' })
+          .eq('event_id', currentEvent.id)
+          .eq('email_lower', emailLower)
+          .eq('status', 'confirmed');
+        
+        if (typeof dupCount === 'number' && dupCount > 0) {
+          // Doublon détecté - afficher message et vider formulaire (PAS de modal)
+          setFeedback('Vous êtes déjà inscrit pour cet événement.', 'info');
+          clearForm();
+          return;
+        }
+      } catch (err) {
+        console.warn('Failed to check existing participant:', err);
+      }
+    }
+    
+    // Pas de doublon - ouvrir le modal de confirmation
     openConfirmModal(payload);
   }
 

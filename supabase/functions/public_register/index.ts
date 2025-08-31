@@ -43,9 +43,10 @@ serve(async (req) => {
   }
   if (req.method !== 'POST') return badRequest('POST only');
 
-  // Env
-  const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
-  const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  // Env (Dashboard forbids secrets starting with SUPABASE_ prefix)
+  // Use SB_URL/SB_SERVICE_ROLE_KEY, but keep fallback to SUPABASE_* for local/dev.
+  const SUPABASE_URL = Deno.env.get('SB_URL') || Deno.env.get('SUPABASE_URL');
+  const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SB_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return serverError('Supabase env not set');
 

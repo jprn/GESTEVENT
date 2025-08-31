@@ -109,17 +109,39 @@ function renderCards(events, plan){
         <div class="metric"><span class="label">Inscrits</span><span class="value">${e.registered_count ?? 0}${e.capacity?` / ${e.capacity}`:''}</span></div>
         <div class="metric"><span class="label">Revenu</span><span class="value">${eur(e.revenue_cents)}</span></div>
       </div>
+      <div class="card__actions">
+        <button type="button" class="btn btn--danger btn-delete-event" data-event-id="${e.id}" title="Supprimer cet événement" aria-label="Supprimer l'événement ${e.title || ''}">Supprimer</button>
+      </div>
     `;
     // Carte cliquable -> modal d'aperçu
     card.tabIndex = 0;
-    card.addEventListener('click', ()=> openEventModal(e));
-    card.addEventListener('keypress', (ev)=>{ if (ev.key==='Enter' || ev.key===' ') { ev.preventDefault(); openEventModal(e); }});
+    card.addEventListener('click', (ev)=>{ if (!ev.target.closest('.btn-delete-event')) openEventModal(e); });
+    card.addEventListener('keypress', (ev)=>{ if (ev.key==='Enter' || ev.key===' ') { ev.preventDefault(); if (!ev.target.closest('.btn-delete-event')) openEventModal(e); }});
     grid.appendChild(card);
   }
 }
 
-// La suppression n'est plus exposée directement sur la carte. On pourra la proposer dans la modal si nécessaire.
-function bindDeleteHandlers(){}
+function bindDeleteHandlers(){
+  const deleteButtons = document.querySelectorAll('.btn-delete-event');
+  deleteButtons.forEach((button) => {
+    button.addEventListener('click', async (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      const eventId = button.dataset.eventId;
+      const supa = window.AppAPI.getClient();
+      if (confirm(`Voulez-vous vraiment supprimer l'événement ${eventId}?`)) {
+        try {
+          const { error } = await supa.from('events').delete().eq('id', eventId);
+          if (error) throw error;
+          loadPage(state.page);
+        } catch (err) {
+          console.error(err);
+          toast('Erreur de suppression de l\'événement', 'error');
+        }
+      }
+    });
+  });
+}
 
 // Modal d'aperçu d'événement
 function openEventModal(e){

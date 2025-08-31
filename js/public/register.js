@@ -263,10 +263,15 @@
       ? (currentEvent.price_cents/100).toFixed(2).replace('.', ',') + ' €' : '—';
     byId('cm-price').textContent = price;
     priceLine.hidden = !(currentEvent && String(currentEvent.ticket_type||'').toLowerCase() === 'paid');
-    // Affichage inratable
+    // Affichage inratable avec styles forcés
     modal.hidden = false;
     modal.classList.add('is-open');
-    modal.style.display = 'block';
+    modal.style.display = 'block !important';
+    modal.style.visibility = 'visible';
+    modal.style.opacity = '1';
+    modal.style.zIndex = '10000';
+    modal.style.position = 'fixed';
+    modal.style.inset = '0';
     console.debug('[register] confirm modal shown', modal);
     // Fallback de visibilité si le contenu a une taille nulle
     const rect = modal.querySelector('.modal__content')?.getBoundingClientRect();

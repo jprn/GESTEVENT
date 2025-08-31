@@ -329,7 +329,7 @@
       // Option A: considérer "déjà inscrit" comme un succès idempotent
       const codeStr = String(errCode||'').toLowerCase();
       const looksDuplicate = /deja|déjà|already|duplicate|unique/i.test(String(msg||''));
-      if (codeStr === 'already_registered' || (!errCode && status === 403 && looksDuplicate)){
+      if (codeStr === 'already_registered' || looksDuplicate){
         setFeedback("Vous êtes déjà inscrit pour cet événement.", 'info');
         const form = byId('public-register-form');
         form?.querySelectorAll('input,button').forEach(el=>el.disabled = true);

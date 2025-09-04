@@ -15,6 +15,7 @@
   let currentEventTitle = '';
   let currentRows = [];
   let lastEventMeta = { capacity: null, ticket_type: null, price_cents: null };
+  const eventMetaMap = new Map(); // id -> {capacity, ticket_type, price_cents, title}
 
   function applyStatsUI(registered, checkins, revenueCents, cap){
     const sIns = byId('stat-inscrits');
@@ -47,9 +48,11 @@
     const supa = window.AppAPI.getClient();
     const { data, error } = await supa
       .from('events')
-      .select('id, title, status')
+      .select('id, title, status, capacity, ticket_type, price_cents')
       .order('created_at', { ascending: false });
     if (error){ sel.innerHTML = '<option value="">Erreur de chargement</option>'; return; }
+    eventMetaMap.clear();
+    (data||[]).forEach(e=>{ eventMetaMap.set(String(e.id), { capacity: e.capacity ?? null, ticket_type: e.ticket_type ?? null, price_cents: typeof e.price_cents==='number'?e.price_cents:null, title: e.title||'' }); });
     sel.innerHTML = '<option value="">— Sélectionner un événement —</option>' +
       (data||[]).map(e=>`<option value="${e.id}">${e.title || 'Sans titre'}${e.status && e.status!=='published' ? ' · ('+e.status+')' : ''}</option>`).join('');
   }
@@ -73,22 +76,33 @@
       return;
     }
     const supa = window.AppAPI.getClient();
-    // 1) Lire l'événement avec agrégats si dispos
-    let ev = null; let error = null;
-    try{
-      const res = await supa
-        .from('events')
-        .select('id,capacity,registered_count,checkin_count,revenue_cents,ticket_type,price_cents')
-        .eq('id', currentEventId)
-        .maybeSingle();
-      ev = res.data; error = res.error || null;
-    }catch(err){ error = err; }
-    // Ne pas retourner sur erreur: on peut calculer depuis participants
-    let registered = typeof ev?.registered_count === 'number' ? ev.registered_count : null;
-    let checkins = typeof ev?.checkin_count === 'number' ? ev.checkin_count : null;
-    let revenue = typeof ev?.revenue_cents === 'number' ? ev.revenue_cents : null;
-    const cap = typeof ev?.capacity === 'number' ? ev.capacity : null;
-    lastEventMeta = { capacity: cap, ticket_type: ev?.ticket_type ?? null, price_cents: typeof ev?.price_cents === 'number' ? ev.price_cents : null };
+    // 1) Métadonnées depuis la map
+    let meta = eventMetaMap.get(String(currentEventId)) || {};
+    lastEventMeta = { capacity: typeof meta.capacity==='number'?meta.capacity:null, ticket_type: meta.ticket_type ?? null, price_cents: typeof meta.price_cents==='number'?meta.price_cents:null };
+    let registered = null;
+    let checkins = null;
+    let revenue = null;
+    let cap = lastEventMeta.capacity;
+
+    // 1.b) Fallback ciblé: tenter de lire capacity/pricing si absent de la map
+    if (cap == null || lastEventMeta.ticket_type == null || typeof lastEventMeta.price_cents !== 'number'){
+      try{
+        const { data: evRow } = await supa
+          .from('events')
+          .select('capacity,ticket_type,price_cents')
+          .eq('id', currentEventId)
+          .maybeSingle();
+        if (evRow){
+          cap = typeof evRow.capacity === 'number' ? evRow.capacity : cap;
+          lastEventMeta.capacity = cap;
+          if (evRow.ticket_type) lastEventMeta.ticket_type = evRow.ticket_type;
+          if (typeof evRow.price_cents === 'number') lastEventMeta.price_cents = evRow.price_cents;
+          // Mémoriser dans la map pour prochains rafraîchissements
+          meta = { ...(meta||{}), capacity: lastEventMeta.capacity, ticket_type: lastEventMeta.ticket_type, price_cents: lastEventMeta.price_cents };
+          eventMetaMap.set(String(currentEventId), meta);
+        }
+      }catch{ /* ignore, RLS possible */ }
+    }
 
     // 2) Fallbacks si les agrégats manquent
     if (registered == null){
@@ -113,8 +127,8 @@
       }catch{ checkins = 0; }
     }
     if (revenue == null){
-      if (ev?.ticket_type === 'paid' && typeof ev?.price_cents === 'number' && registered != null){
-        revenue = (registered * ev.price_cents) | 0;
+      if (lastEventMeta.ticket_type === 'paid' && typeof lastEventMeta.price_cents === 'number' && registered != null){
+        revenue = (registered * lastEventMeta.price_cents) | 0;
       }else{
         revenue = 0;
       }
@@ -242,6 +256,9 @@
     byId('ev-select').addEventListener('change', async (e)=>{
       currentEventId = e.target.value || null;
       currentEventTitle = e.target.options && e.target.selectedIndex >= 0 ? (e.target.options[e.target.selectedIndex].textContent || '') : '';
+      // Mettre à jour lastEventMeta depuis la map si dispo
+      const meta = eventMetaMap.get(String(currentEventId)) || {};
+      lastEventMeta = { capacity: typeof meta.capacity==='number'?meta.capacity:null, ticket_type: meta.ticket_type ?? null, price_cents: typeof meta.price_cents==='number'?meta.price_cents:null };
       // Mettre à jour les métadonnées d'événement d'abord (capacity/pricing), puis la liste (qui peut surcharger avec filtre)
       await loadEventStats();
       await loadParticipants();
@@ -269,6 +286,8 @@
       sel.value = eid;
       currentEventId = eid;
       currentEventTitle = sel.options && sel.selectedIndex >=0 ? (sel.options[sel.selectedIndex].textContent || '') : '';
+      const meta = eventMetaMap.get(String(currentEventId)) || {};
+      lastEventMeta = { capacity: typeof meta.capacity==='number'?meta.capacity:null, ticket_type: meta.ticket_type ?? null, price_cents: typeof meta.price_cents==='number'?meta.price_cents:null };
     }
     // Charger d'abord les métadonnées d'événement, puis la liste (pour permettre stats filtrées précises)
     await loadEventStats();

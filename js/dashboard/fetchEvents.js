@@ -241,6 +241,22 @@ function openEventModal(e){
       }
     });
   }
+  // Sauvegarder des métadonnées utiles (capacity/pricing) avant d'ouvrir la page Participants
+  try{
+    const partBtn = body.querySelector('a.btn.btn--ghost[href^="./participants.html"]');
+    if (partBtn){
+      partBtn.addEventListener('click', ()=>{
+        try{
+          const payload = {
+            capacity: typeof e.capacity === 'number' ? e.capacity : null,
+            ticket_type: e.ticket_type ?? null,
+            price_cents: typeof e.price_cents === 'number' ? e.price_cents : null,
+          };
+          localStorage.setItem(`eventMeta:${e.id}`, JSON.stringify(payload));
+        }catch{}
+      });
+    }
+  }catch{}
   m.removeAttribute('hidden');
   document.body.style.overflow = 'hidden';
 }

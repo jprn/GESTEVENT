@@ -1,10 +1,23 @@
 @import url('./variables.css');
 /* Base */
 html,body{height:100%}
-body{background:var(--color-surface);color:var(--color-text);font:400 var(--fs-14)/1.5 var(--font-family);margin:0}
+body{background:var(--color-surface-2);color:var(--color-text);font:400 var(--fs-14)/1.5 var(--font-family);margin:0}
 a{color:var(--color-primary);text-decoration:none}
 a:hover{text-decoration:underline}
 *:focus{outline:2px solid var(--color-primary-50);outline-offset:2px}
-.container{max-width:var(--container);margin:0 auto;padding:0 var(--space-4)}
+.container{max-width:var(--container);margin:0 auto;padding:var(--space-6) var(--space-4)}
 
-#app{padding:var(--space-6)}
+/* Toolbar */
+.participants .toolbar{display:grid;grid-template-columns:1.2fr 1fr auto auto;gap:var(--space-3);align-items:center;margin-bottom:var(--space-4)}
+@media(max-width:880px){.participants .toolbar{grid-template-columns:1fr;gap:var(--space-2)}}
+
+/* Empty state */
+.participants .empty{color:var(--color-text-2);border:1px dashed var(--color-border-2);background:var(--color-surface-2);border-radius:12px;padding:var(--space-4);text-align:center}
+
+/* Table */
+.table-wrap{border:1px solid var(--color-border-2);border-radius:12px;overflow:auto;background:var(--color-surface)}
+.table{width:100%;border-collapse:collapse;min-width:720px}
+.table thead th{position:sticky;top:0;background:var(--color-surface-2);color:var(--color-text-2);text-align:left;padding:.75rem;border-bottom:1px solid var(--color-border-2);font-weight:600}
+.table tbody td{padding:.7rem;border-bottom:1px solid var(--color-border-2)}
+.table tbody tr:hover{background:var(--color-surface-2)}
+

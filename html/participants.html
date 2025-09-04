@@ -3,12 +3,35 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>EventFlow · Participants</title>
+  <title>GESTEVENT · Participants</title>
   <link rel="manifest" href="../manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="../assets/logo.svg" type="image/svg+xml">
+  <!-- Styles communs -->
+  <link rel="stylesheet" href="../css/public-register.css"> 
+  <!-- Spécifique Participants -->
   <link rel="stylesheet" href="../css/participants.css">
-</head>
+  <script>document.addEventListener('DOMContentLoaded',()=>{ const y=document.getElementById('y'); if(y) y.textContent=new Date().getFullYear(); });</script>
+  </head>
 <body>
-  <div id="app"></div>
+  <div class="container">
+    <header class="header">
+      <img src="../assets/logo.svg" width="28" height="28" alt="Logo"/>
+      <div class="brand">GESTEVENT</div>
+    </header>
+
+    <section class="card">
+      <div class="card__body">
+        <h1>Participants</h1>
+        <div id="app"></div>
+      </div>
+    </section>
+
+    <div class="footer">© <span id="y"></span> GESTEVENT</div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../js/utils/api.js"></script>
   <script src="../js/participants/listParticipants.js" defer></script>

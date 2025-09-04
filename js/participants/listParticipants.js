@@ -87,9 +87,9 @@
     root.innerHTML = `
       <div class="participants">
         <div class="toolbar">
-          <select id="ev-select" class="select"></select>
-          <input id="search" class="input" placeholder="Rechercher nom, email, téléphone"/>
-          <button id="btn-refresh" class="btn">Rafraîchir</button>
+          <select id="ev-select" class="form-control"></select>
+          <input id="search" class="form-control" placeholder="Rechercher nom, email, téléphone"/>
+          <button id="btn-refresh" class="btn btn-secondary">Rafraîchir</button>
           <button id="btn-export" class="btn" disabled>Exporter CSV</button>
         </div>
         <div id="empty" class="empty">Chargement…</div>

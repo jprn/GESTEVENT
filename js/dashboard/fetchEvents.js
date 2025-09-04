@@ -117,7 +117,7 @@ function renderCards(events, plan){
         <div class="metric"><span class="label">Remplissage</span><span class="value">${p} %</span></div>
       </div>
       <div class="progress" aria-label="Taux de remplissage" title="${p}%">
-        <div class="progress__bar" style="width:${p}%"></div>
+        <div class="progress__bar ${p<60?'progress__bar--ok':(p<90?'progress__bar--warn':'progress__bar--danger')}" style="width:${p}%"></div>
       </div>
       <div class="card__actions">
         <button type="button" class="btn btn--danger btn-delete-event" data-event-id="${e.id}" title="Supprimer cet événement" aria-label="Supprimer l'événement ${e.title || ''}">Supprimer</button>

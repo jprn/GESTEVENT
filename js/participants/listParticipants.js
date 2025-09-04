@@ -28,17 +28,15 @@
     if (sIns) sIns.textContent = `${registered}${cap ? (' / ' + cap) : ''}`;
     if (sCk) sCk.textContent = String(checkins);
     if (sRev) sRev.textContent = eur(revenueCents);
-    if (sCap) sCap.textContent = cap != null ? String(cap) : '—';
-    if (sRem) sRem.textContent = (cap != null && registered != null) ? String(Math.max(0, cap - registered)) : '—';
-    if (sPct){
-      if (cap && typeof registered === 'number' && cap > 0){
-        const pct = Math.max(0, Math.min(100, Math.round((registered / cap) * 100)));
-        sPct.textContent = `${pct} %`;
-        if (sBar) sBar.style.width = pct + '%';
-      } else {
-        sPct.textContent = '—';
-        if (sBar) sBar.style.width = '0%';
-      }
+    if (sCap) sCap.textContent = cap == null ? '—' : String(cap);
+    let remaining = cap == null ? null : Math.max(0, cap - (Number(registered)||0));
+    if (sRem) sRem.textContent = remaining == null ? '—' : String(remaining);
+    const p = cap ? Math.min(100, Math.round((registered / cap) * 100)) : 0;
+    if (sPct) sPct.textContent = `${p} %`;
+    if (sBar){
+      sBar.style.width = p + '%';
+      sBar.classList.remove('progress__bar--ok','progress__bar--warn','progress__bar--danger');
+      sBar.classList.add(p < 60 ? 'progress__bar--ok' : (p < 90 ? 'progress__bar--warn' : 'progress__bar--danger'));
     }
   }
 
@@ -170,13 +168,19 @@
       empty.hidden = false; empty.textContent = 'Aucun participant';
     } else {
       empty.hidden = true;
-      const rowsHtml = currentRows.map((p)=>{
+      const rowsHtml = currentRows.map((r)=>{
+        const status = (r.status || '—').toLowerCase();
+        let badgeClass = 'badge';
+        if (status === 'checked_in') badgeClass += ' badge--info';
+        else if (status === 'confirmed') badgeClass += ' badge--ok';
+        else if (status === 'pending') badgeClass += ' badge--warn';
+        else if (status === 'canceled' || status === 'cancelled') badgeClass += ' badge--err';
         return `<tr>
-          <td>${p.full_name || '—'}</td>
-          <td>${p.email || '—'}</td>
-          <td>${p.phone || '—'}</td>
-          <td>${p.status || '—'}</td>
-          <td>${fmtDate(p.created_at)}</td>
+          <td>${r.full_name || '—'}</td>
+          <td>${r.email || '—'}</td>
+          <td>${r.phone || '—'}</td>
+          <td><span class="${badgeClass}">${r.status || '—'}</span></td>
+          <td>${fmtDate(r.created_at)}</td>
         </tr>`;
       }).join('');
       tableBody.innerHTML = rowsHtml;

@@ -49,7 +49,11 @@ a:hover{text-decoration:underline}
 .metric .label{display:block;color:var(--color-text-2);font-size:var(--fs-12)}
 .metric .value{font-weight:700}
 .progress{height:10px;background:var(--color-surface-2);border-radius:999px;overflow:hidden;border:1px solid var(--color-border-2)}
-.progress__bar{height:100%;background:var(--color-primary);width:0}
+.progress__bar{height:100%;background:var(--color-primary);width:0;transition:width var(--dur) var(--ease), background-color var(--dur) var(--ease)}
+/* Seuils de couleur pour le remplissage */
+.progress__bar--ok{background:var(--color-success)}
+.progress__bar--warn{background:var(--color-warning)}
+.progress__bar--danger{background:var(--color-danger)}
 .card__actions{display:flex;flex-wrap:wrap;gap:.5rem}
 .btn--danger{background:#e5484d}
 .badge{display:inline-block;border-radius:999px;padding:.15rem .6rem;font-size:12px;font-weight:800;letter-spacing:.02em;text-transform:uppercase}

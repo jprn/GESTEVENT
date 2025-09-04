@@ -59,16 +59,16 @@
         h('a', { href:'./participants.html' }, 'Participants'),
         h('a', { href:'./profile.html' }, 'Profil'),
       ]),
-      h('div', { class:'app-sidebar__user' }, [
-        h('img', { class:'avatar', src: profile.avatar_url || 'https://placehold.co/64x64?text=%20', alt:'Avatar' }),
+      h('div', { class:'app-sidebar__user', role:'contentinfo' }, [
+        h('img', { class:'avatar', src: profile.avatar_url || 'https://placehold.co/80x80?text=%20', alt:'Avatar' }),
         h('div', { class:'u-meta' }, [
           h('div', { class:'u-name' }, profile.full_name || 'Utilisateur'),
-          h('div', { class:'u-email' }, user.email || '')
-        ]),
-        h('div', { class:'u-actions' }, [
-          h('button', { class:'btn', onclick:()=>{ window.location.href = './profile.html'; } }, 'Modifier'),
-          h('button', { class:'btn', onclick: async ()=>{ try{ await supa.auth.signOut(); }catch{} window.location.href = './login.html'; } }, 'Quitter')
+          h('div', { class:'u-email' }, user.email || ''),
+          h('a', { class:'u-edit', href:'./profile.html' }, 'Modifier mon profil')
         ])
+      ]),
+      h('div', { class:'app-sidebar__footer' }, [
+        h('button', { class:'btn btn--logout', onclick: async ()=>{ try{ await supa.auth.signOut(); }catch{} window.location.href = './login.html'; } }, 'Quitter')
       ])
     ]);
 

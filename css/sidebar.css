@@ -2,19 +2,24 @@
 
 body.with-sidebar{display:flex;min-height:100vh}
 .app-sidebar{position:fixed;inset:0 auto 0 0;width:240px;background:var(--color-surface);border-right:1px solid var(--color-border-2);display:flex;flex-direction:column;box-shadow:var(--shadow-sm);z-index:20}
+.app-sidebar::after{content:"";position:absolute;top:0;right:-1px;width:16px;height:100%;pointer-events:none;background:linear-gradient(to right, rgba(0,0,0,.06), rgba(0,0,0,0))}
 .app-sidebar__brand{display:flex;align-items:center;gap:.6rem;padding:var(--space-4);font-weight:700;border-bottom:1px solid var(--color-border-2)}
 .app-sidebar__nav{padding:var(--space-3) var(--space-2);display:flex;flex-direction:column;gap:.25rem;flex:1 1 auto}
-.app-sidebar__nav a{display:flex;align-items:center;gap:.6rem;padding:.55rem .75rem;border-radius:10px;color:var(--color-text);border:1px solid transparent;transition:background-color var(--dur) var(--ease), color var(--dur) var(--ease), border-color var(--dur) var(--ease)}
-.app-sidebar__nav a:hover{background:var(--color-surface-2)}
+.app-sidebar__nav a{display:flex;align-items:center;gap:.6rem;padding:.55rem .75rem;border-radius:10px;color:var(--color-text);border:1px solid transparent;position:relative;transition:background-color var(--dur) var(--ease), color var(--dur) var(--ease), border-color var(--dur) var(--ease), transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease)}
+.app-sidebar__nav a::before{content:"";position:absolute;left:-2px;top:6px;bottom:6px;width:4px;border-radius:4px;background:var(--color-primary);opacity:0;transform:scaleY(.4);transition:opacity var(--dur) var(--ease), transform var(--dur) var(--ease)}
+.app-sidebar__nav a:hover{background:var(--color-primary-10);border-color:var(--color-primary-30);color:var(--color-primary);transform:translateX(2px);box-shadow:inset 0 0 0 1px var(--color-primary-20)}
+.app-sidebar__nav a:hover::before{opacity:1;transform:scaleY(1)}
 .app-sidebar__nav a:focus{outline:none;border-color:var(--color-primary-40);box-shadow:0 0 0 3px var(--color-primary-50)}
 .app-sidebar__nav a.is-active{background:var(--color-primary-10);color:var(--color-primary);border-color:var(--color-primary-40);font-weight:600}
-.app-sidebar__user{border-top:1px solid var(--color-border-2);padding:var(--space-3);display:flex;gap:.6rem;align-items:center}
-.app-sidebar__user .avatar{width:32px;height:32px;border-radius:999px;background:#ddd;object-fit:cover}
+.app-sidebar__nav a.is-active::before{opacity:1;transform:scaleY(1)}
+.app-sidebar__nav a:active{transform:translateX(1px);filter:brightness(.98)}
+.app-sidebar__user{border-top:1px solid var(--color-border-2);padding:var(--space-3);display:flex;gap:.8rem;align-items:center;margin:var(--space-3);margin-top:auto;background:var(--color-surface-2);border:1px solid var(--color-border-2);border-radius:12px}
+.app-sidebar__user .avatar{width:56px;height:56px;border-radius:999px;background:#ddd;object-fit:cover;border:1px solid var(--color-border-2)}
 .app-sidebar__user .u-meta{flex:1 1 auto;min-width:0}
-.app-sidebar__user .u-name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.app-sidebar__user .u-name{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .app-sidebar__user .u-email{font-size:var(--fs-12);color:var(--color-text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.app-sidebar__user .u-actions{display:flex;gap:.4rem}
-.app-sidebar__user .btn{padding:.35rem .6rem;border-radius:8px;border:1px solid var(--color-border-2);background:var(--color-surface-2);color:var(--color-text);cursor:pointer}
+.app-sidebar__user .u-edit{display:inline-block;margin-top:4px;font-size:var(--fs-12);color:var(--color-primary);text-decoration:none}
+.app-sidebar__user .u-edit:hover{text-decoration:underline}
 
 .app-main{margin-left:240px;flex:1 1 auto;display:block}
 @media(max-width: 900px){
@@ -28,3 +33,9 @@ body.with-sidebar{display:flex;min-height:100vh}
 .sidebar-toggle:hover{background:var(--color-surface-2)}
 .sidebar-toggle:focus{outline:none;box-shadow:0 0 0 3px var(--color-primary-50)}
 @media(max-width: 900px){.sidebar-toggle{display:inline-flex;align-items:center;justify-content:center}}
+
+/* Pied de sidebar */
+.app-sidebar__footer{border-top:1px solid var(--color-border-2);padding:var(--space-3)}
+.app-sidebar__footer .btn{width:100%;justify-content:center}
+.btn--logout{background:#e5484d;color:white;border:1px solid #e5484d}
+.btn--logout:hover{filter:brightness(0.96)}

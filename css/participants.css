@@ -5,6 +5,7 @@
 .participants .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-4);margin-bottom:var(--space-5)}
 @media (max-width: 880px){.participants .stats{grid-template-columns:repeat(2,1fr)}}
 @media (max-width: 520px){.participants .stats{grid-template-columns:1fr}}
+.participants .stats__note{grid-column:1 / -1;display:inline-flex;align-items:center;gap:8px;width:max-content;background:var(--color-primary-50);color:#0b3a83;border:1px solid var(--color-primary-50);border-radius:999px;padding:4px 10px;font-size:var(--fs-12);font-weight:600}
 
 /* Toolbar */
 .participants .toolbar{position:sticky;top:8px;z-index:5;display:grid;grid-template-columns:1.2fr 1fr auto auto;gap:var(--space-3);align-items:center;margin-bottom:var(--space-4);background:var(--color-elev);border:var(--border);border-radius:12px;padding:var(--space-3);box-shadow:var(--shadow-sm);backdrop-filter:saturate(1.1) blur(2px)}

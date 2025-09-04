@@ -73,6 +73,27 @@
     ]);
 
     document.body.insertBefore(sidebar, document.body.firstChild);
+
+    // Marquer l'élément actif en fonction de l'URL
+    try{
+      const links = sidebar.querySelectorAll('.app-sidebar__nav a');
+      const path = location.pathname.split('/').pop();
+      links.forEach(a=>{
+        const href = a.getAttribute('href');
+        if (href && path && href.endsWith(path)) a.classList.add('is-active');
+      });
+    }catch{}
+
+    // Bouton toggle mobile
+    let toggle = document.querySelector('.sidebar-toggle');
+    if (!toggle){
+      toggle = h('button', { class:'sidebar-toggle', 'aria-label':'Ouvrir le menu', title:'Menu' }, '☰');
+      toggle.addEventListener('click', ()=>{
+        const open = document.body.classList.toggle('nav-open');
+        toggle.setAttribute('aria-expanded', String(open));
+      });
+      document.body.appendChild(toggle);
+    }
   }
 
   document.addEventListener('DOMContentLoaded', buildSidebar);

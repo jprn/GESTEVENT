@@ -71,6 +71,7 @@
       if (sRem) sRem.textContent = '—';
       if (sPct) sPct.textContent = '—';
       if (sBar) sBar.style.width = '0%';
+      const note = byId('stats-note'); if (note) note.hidden = true;
       return;
     }
     const supa = window.AppAPI.getClient();
@@ -134,6 +135,7 @@
 
     // 3) Mettre à jour l'UI
     applyStatsUI(registered, checkins, revenue, cap);
+    const note = byId('stats-note'); if (note) note.hidden = true;
   }
 
   async function loadParticipants(){
@@ -145,6 +147,7 @@
     if (!currentEventId){ empty.hidden = false; empty.textContent = 'Choisissez un événement.'; return; }
 
     const q = byId('search').value.trim();
+    const note = byId('stats-note'); if (note) note.hidden = !q;
     const supa = window.AppAPI.getClient();
     let query = supa
       .from('participants')
@@ -220,6 +223,7 @@
     root.innerHTML = `
       <div class="participants">
         <section class="stats" id="p-stats">
+          <div class="stats__note" id="stats-note" hidden>Stats filtrées</div>
           <div class="stat"><span class="stat__value" id="stat-inscrits">—</span><span class="stat__label">Inscrits</span></div>
           <div class="stat"><span class="stat__value" id="stat-checkins">—</span><span class="stat__label">Check‑ins</span></div>
           <div class="stat"><span class="stat__value" id="stat-revenue">—</span><span class="stat__label">Revenu</span></div>

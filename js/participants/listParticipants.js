@@ -6,6 +6,10 @@
     if (!iso) return '—';
     try { const d = new Date(iso); return d.toLocaleString(); } catch { return '—'; }
   };
+  const eur = (cents)=>{
+    if (typeof cents !== 'number') return '—';
+    return (cents/100).toLocaleString('fr-FR',{ style:'currency', currency:'EUR' });
+  };
 
   let currentEventId = null;
   let currentEventTitle = '';
@@ -22,6 +26,74 @@
     if (error){ sel.innerHTML = '<option value="">Erreur de chargement</option>'; return; }
     sel.innerHTML = '<option value="">— Sélectionner un événement —</option>' +
       (data||[]).map(e=>`<option value="${e.id}">${e.title || 'Sans titre'}${e.status && e.status!=='published' ? ' · ('+e.status+')' : ''}</option>`).join('');
+  }
+
+  async function loadEventStats(){
+    const sIns = byId('stat-inscrits');
+    const sCk = byId('stat-checkins');
+    const sRev = byId('stat-revenue');
+    const sCap = byId('stat-cap');
+    if (!currentEventId){
+      if (sIns) sIns.textContent = '—';
+      if (sCk) sCk.textContent = '—';
+      if (sRev) sRev.textContent = '—';
+      if (sCap) sCap.textContent = '—';
+      return;
+    }
+    const supa = window.AppAPI.getClient();
+    // 1) Lire l'événement avec agrégats si dispos
+    const { data: ev, error } = await supa
+      .from('events')
+      .select('id,title,capacity,registered_count,checkin_count,revenue_cents,ticket_type,price_cents')
+      .eq('id', currentEventId)
+      .maybeSingle();
+    if (error){
+      if (sIns) sIns.textContent = '—';
+      if (sCk) sCk.textContent = '—';
+      if (sRev) sRev.textContent = '—';
+      if (sCap) sCap.textContent = '—';
+      return;
+    }
+    let registered = typeof ev?.registered_count === 'number' ? ev.registered_count : null;
+    let checkins = typeof ev?.checkin_count === 'number' ? ev.checkin_count : null;
+    let revenue = typeof ev?.revenue_cents === 'number' ? ev.revenue_cents : null;
+    const cap = typeof ev?.capacity === 'number' ? ev.capacity : null;
+
+    // 2) Fallbacks si les agrégats manquent
+    if (registered == null){
+      try{
+        const { count } = await supa
+          .from('participants')
+          .select('id', { head: true, count: 'exact' })
+          .eq('event_id', currentEventId)
+          .eq('status', 'confirmed');
+        registered = typeof count === 'number' ? count : 0;
+      }catch{ registered = 0; }
+    }
+    if (checkins == null){
+      // Tentative: compter les statuts check-in si implémentés ainsi
+      try{
+        const { count } = await supa
+          .from('participants')
+          .select('id', { head: true, count: 'exact' })
+          .eq('event_id', currentEventId)
+          .eq('status', 'checked_in');
+        checkins = typeof count === 'number' ? count : 0;
+      }catch{ checkins = 0; }
+    }
+    if (revenue == null){
+      if (ev?.ticket_type === 'paid' && typeof ev?.price_cents === 'number' && registered != null){
+        revenue = (registered * ev.price_cents) | 0;
+      }else{
+        revenue = 0;
+      }
+    }
+
+    // 3) Mettre à jour l'UI
+    if (sIns) sIns.textContent = `${registered}${cap?` / ${cap}`:''}`;
+    if (sCk) sCk.textContent = String(checkins);
+    if (sRev) sRev.textContent = eur(revenue);
+    if (sCap) sCap.textContent = cap != null ? String(cap) : '—';
   }
 
   async function loadParticipants(){
@@ -86,6 +158,12 @@
     const root = byId('app');
     root.innerHTML = `
       <div class="participants">
+        <section class="stats" id="p-stats">
+          <div class="stat"><span class="stat__value" id="stat-inscrits">—</span><span class="stat__label">Inscrits</span></div>
+          <div class="stat"><span class="stat__value" id="stat-checkins">—</span><span class="stat__label">Check‑ins</span></div>
+          <div class="stat"><span class="stat__value" id="stat-revenue">—</span><span class="stat__label">Revenu</span></div>
+          <div class="stat"><span class="stat__value" id="stat-cap">—</span><span class="stat__label">Capacité</span></div>
+        </section>
         <div class="toolbar">
           <select id="ev-select" class="form-control"></select>
           <input id="search" class="form-control" placeholder="Rechercher nom, email, téléphone"/>
@@ -114,6 +192,7 @@
       currentEventId = e.target.value || null;
       currentEventTitle = e.target.options && e.target.selectedIndex >= 0 ? (e.target.options[e.target.selectedIndex].textContent || '') : '';
       loadParticipants();
+      loadEventStats();
     });
     byId('search').addEventListener('input', ()=>{
       // Debounce simple
@@ -136,5 +215,6 @@
       currentEventTitle = sel.options && sel.selectedIndex >=0 ? (sel.options[sel.selectedIndex].textContent || '') : '';
     }
     await loadParticipants();
+    await loadEventStats();
   });
 })();

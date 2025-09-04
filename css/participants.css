@@ -1,17 +1,30 @@
 @import url('./variables.css');
 /* Spécifique Participants (n'altère pas les bases du dashboard) */
 
+/* Stats */
+.participants .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-4);margin-bottom:var(--space-5)}
+@media (max-width: 880px){.participants .stats{grid-template-columns:repeat(2,1fr)}}
+@media (max-width: 520px){.participants .stats{grid-template-columns:1fr}}
+
 /* Toolbar */
-.participants .toolbar{display:grid;grid-template-columns:1.2fr 1fr auto auto;gap:var(--space-3);align-items:center;margin-bottom:var(--space-4)}
+.participants .toolbar{position:sticky;top:8px;z-index:5;display:grid;grid-template-columns:1.2fr 1fr auto auto;gap:var(--space-3);align-items:center;margin-bottom:var(--space-4);background:var(--color-elev);border:var(--border);border-radius:12px;padding:var(--space-3);box-shadow:var(--shadow-sm);backdrop-filter:saturate(1.1) blur(2px)}
 @media(max-width:880px){.participants .toolbar{grid-template-columns:1fr;gap:var(--space-2)}}
+
+/* Inputs (form-control utilisé dans cette page) */
+.participants .form-control{width:100%;padding:10px 12px;border:var(--border);border-radius:var(--radius-md);background:var(--color-elev);color:var(--color-text);transition:border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease)}
+.participants .form-control:focus{outline:none;border-color:var(--color-primary);box-shadow:0 0 0 3px var(--color-primary-50)}
 
 /* Empty state */
 .participants .empty{color:var(--color-text-2);border:1px dashed var(--color-border-2);background:var(--color-surface-2);border-radius:12px;padding:var(--space-4);text-align:center}
 
 /* Table */
-.table-wrap{border:1px solid var(--color-border-2);border-radius:12px;overflow:auto;background:var(--color-surface)}
+.table-wrap{border:1px solid var(--color-border-2);border-radius:14px;overflow:auto;background:var(--color-elev);box-shadow:var(--shadow-sm)}
 .table{width:100%;border-collapse:collapse;min-width:720px}
 .table thead th{position:sticky;top:0;background:var(--color-surface-2);color:var(--color-text-2);text-align:left;padding:.75rem;border-bottom:1px solid var(--color-border-2);font-weight:600}
 .table tbody td{padding:.7rem;border-bottom:1px solid var(--color-border-2)}
 .table tbody tr:hover{background:var(--color-surface-2)}
+
+/* Progress bar spacing in stats */
+.participants .stat .progress{height:10px}
+
 

@@ -112,8 +112,12 @@ function renderCards(events, plan){
       </header>
       ${desc ? `<p class="card__desc">${desc}</p>` : ''}
       <div class="card__metrics">
-        <div class="metric"><span class="label">Inscrits</span><span class="value">${e.registered_count ?? 0}${e.capacity?` / ${e.capacity}`:''}</span></div>
+        <div class="metric"><span class="label">Inscrits</span><span class="value">${(e.registered_count ?? 0)}${e.capacity ? (' / ' + e.capacity) : ''}</span></div>
         <div class="metric"><span class="label">Revenu</span><span class="value">${eur(revenueCents)}</span></div>
+        <div class="metric"><span class="label">Remplissage</span><span class="value">${p} %</span></div>
+      </div>
+      <div class="progress" aria-label="Taux de remplissage" title="${p}%">
+        <div class="progress__bar" style="width:${p}%"></div>
       </div>
       <div class="card__actions">
         <button type="button" class="btn btn--danger btn-delete-event" data-event-id="${e.id}" title="Supprimer cet événement" aria-label="Supprimer l'événement ${e.title || ''}">Supprimer</button>
@@ -172,7 +176,7 @@ function openEventModal(e){
     <div class="meta">${fmtDate(e.starts_at)} → ${fmtDate(e.ends_at)}</div>
     ${e.description_html ? `<div class="modal__desc">${e.description_html}</div>` : ''}
     <div class="modal__grid">
-      <div><strong>Inscrits</strong><div>${e.registered_count ?? 0}${e.capacity?` / ${e.capacity}`:''}</div></div>
+      <div><strong>Inscrits</strong><div>${(e.registered_count ?? 0)}${e.capacity ? (' / ' + e.capacity) : ''}</div></div>
       <div><strong>Revenu</strong><div>${eur(revenueCents)}</div></div>
       <div><strong>Check‑ins</strong><div>${e.checkin_count ?? 0}</div></div>
     </div>

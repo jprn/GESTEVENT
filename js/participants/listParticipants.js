@@ -33,11 +33,17 @@
     const sCk = byId('stat-checkins');
     const sRev = byId('stat-revenue');
     const sCap = byId('stat-cap');
+    const sRem = byId('stat-remaining');
+    const sPct = byId('stat-fillpct');
+    const sBar = byId('stat-fillbar');
     if (!currentEventId){
       if (sIns) sIns.textContent = '—';
       if (sCk) sCk.textContent = '—';
       if (sRev) sRev.textContent = '—';
       if (sCap) sCap.textContent = '—';
+      if (sRem) sRem.textContent = '—';
+      if (sPct) sPct.textContent = '—';
+      if (sBar) sBar.style.width = '0%';
       return;
     }
     const supa = window.AppAPI.getClient();
@@ -52,6 +58,8 @@
       if (sCk) sCk.textContent = '—';
       if (sRev) sRev.textContent = '—';
       if (sCap) sCap.textContent = '—';
+      if (sRem) sRem.textContent = '—';
+      if (sPct) sPct.textContent = '—';
       return;
     }
     let registered = typeof ev?.registered_count === 'number' ? ev.registered_count : null;
@@ -94,6 +102,17 @@
     if (sCk) sCk.textContent = String(checkins);
     if (sRev) sRev.textContent = eur(revenue);
     if (sCap) sCap.textContent = cap != null ? String(cap) : '—';
+    if (sRem) sRem.textContent = (cap != null && registered != null) ? String(Math.max(0, cap - registered)) : '—';
+    if (sPct){
+      if (cap && typeof registered === 'number' && cap > 0){
+        const pct = Math.max(0, Math.min(100, Math.round((registered / cap) * 100)));
+        sPct.textContent = `${pct} %`;
+        if (sBar) sBar.style.width = pct + '%';
+      } else {
+        sPct.textContent = '—';
+        if (sBar) sBar.style.width = '0%';
+      }
+    }
   }
 
   async function loadParticipants(){
@@ -163,6 +182,14 @@
           <div class="stat"><span class="stat__value" id="stat-checkins">—</span><span class="stat__label">Check‑ins</span></div>
           <div class="stat"><span class="stat__value" id="stat-revenue">—</span><span class="stat__label">Revenu</span></div>
           <div class="stat"><span class="stat__value" id="stat-cap">—</span><span class="stat__label">Capacité</span></div>
+          <div class="stat"><span class="stat__value" id="stat-remaining">—</span><span class="stat__label">Restants</span></div>
+          <div class="stat">
+            <span class="stat__value" id="stat-fillpct">—</span>
+            <span class="stat__label">Remplissage</span>
+            <div class="progress" style="margin-top:8px">
+              <div class="progress__bar" id="stat-fillbar" style="width:0%"></div>
+            </div>
+          </div>
         </section>
         <div class="toolbar">
           <select id="ev-select" class="form-control"></select>
@@ -199,7 +226,7 @@
       clearTimeout(byId('search')._t);
       byId('search')._t = setTimeout(loadParticipants, 250);
     });
-    byId('btn-refresh').addEventListener('click', loadParticipants);
+    byId('btn-refresh').addEventListener('click', ()=>{ loadParticipants(); loadEventStats(); });
   }
 
   document.addEventListener('DOMContentLoaded', async ()=>{
@@ -216,5 +243,25 @@
     }
     await loadParticipants();
     await loadEventStats();
+
+    // Realtime: mettre à jour les stats (et éventuellement la liste) si des participants changent pour l'événement sélectionné
+    try{
+      const supa = window.AppAPI.getClient();
+      const onChange = (payload)=>{
+        const changedEventId = String((payload?.new?.event_id ?? payload?.old?.event_id) || '');
+        if (currentEventId && changedEventId === String(currentEventId)){
+          loadEventStats();
+          // Optionnel: si l'ajout/suppression impacte la vue courante sans recherche lourde
+          // loadParticipants();
+        }
+      };
+      const channel = supa
+        .channel('participants-page')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'participants' }, onChange)
+        .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'participants' }, onChange)
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'participants' }, onChange)
+        .subscribe();
+      window.addEventListener('beforeunload', ()=>{ try{ supa.removeChannel(channel); }catch{} });
+    }catch(err){ try{ console.warn('Realtime non initialisé sur Participants', err); }catch{} }
   });
 })();

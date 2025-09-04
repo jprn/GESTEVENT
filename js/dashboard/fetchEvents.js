@@ -100,6 +100,11 @@ function renderCards(events, plan){
     else if (s === 'published') statusBadge = '<span class="badge badge--published">Publié</span>';
 
     const desc = clip(stripHtml(e.description_html || ''));
+    const revenueCents = (typeof e.revenue_cents === 'number')
+      ? e.revenue_cents
+      : ((e.ticket_type === 'paid' && typeof e.price_cents === 'number' && typeof e.registered_count === 'number')
+          ? (e.registered_count * e.price_cents)
+          : undefined);
     card.innerHTML = `
       <header class="card__header">
         <h3 class="card__title">${e.title || 'Sans titre'} ${statusBadge}</h3>
@@ -108,7 +113,7 @@ function renderCards(events, plan){
       ${desc ? `<p class="card__desc">${desc}</p>` : ''}
       <div class="card__metrics">
         <div class="metric"><span class="label">Inscrits</span><span class="value">${e.registered_count ?? 0}${e.capacity?` / ${e.capacity}`:''}</span></div>
-        <div class="metric"><span class="label">Revenu</span><span class="value">${eur(e.revenue_cents)}</span></div>
+        <div class="metric"><span class="label">Revenu</span><span class="value">${eur(revenueCents)}</span></div>
       </div>
       <div class="card__actions">
         <button type="button" class="btn btn--danger btn-delete-event" data-event-id="${e.id}" title="Supprimer cet événement" aria-label="Supprimer l'événement ${e.title || ''}">Supprimer</button>
@@ -157,13 +162,18 @@ function openEventModal(e){
   const salesOpen = e.is_open === true ? 'Ouvert' : (e.is_open === false ? 'Fermé' : '—');
   const remaining = (typeof e.capacity === 'number' && typeof e.registered_count === 'number') ? Math.max(0, e.capacity - e.registered_count) : null;
   const publicUrl = (s === 'published' && e.slug) ? `${location.origin}/html/register.html?e=${encodeURIComponent(e.slug)}` : '';
+  const revenueCents = (typeof e.revenue_cents === 'number')
+    ? e.revenue_cents
+    : ((e.ticket_type === 'paid' && typeof e.price_cents === 'number' && typeof e.registered_count === 'number')
+        ? (e.registered_count * e.price_cents)
+        : undefined);
   body.innerHTML = `
     <h3>${e.title || 'Sans titre'} ${status}</h3>
     <div class="meta">${fmtDate(e.starts_at)} → ${fmtDate(e.ends_at)}</div>
     ${e.description_html ? `<div class="modal__desc">${e.description_html}</div>` : ''}
     <div class="modal__grid">
       <div><strong>Inscrits</strong><div>${e.registered_count ?? 0}${e.capacity?` / ${e.capacity}`:''}</div></div>
-      <div><strong>Revenu</strong><div>${eur(e.revenue_cents)}</div></div>
+      <div><strong>Revenu</strong><div>${eur(revenueCents)}</div></div>
       <div><strong>Check‑ins</strong><div>${e.checkin_count ?? 0}</div></div>
     </div>
     <div class="modal__desc">
@@ -311,12 +321,28 @@ async function fillRegisteredCountsIfMissing(rows){
   return rows;
 }
 
+// Compléter le revenu côté client si l'agrégat manque
+async function fillRevenueIfMissing(rows){
+  for (const e of rows){
+    if (typeof e.revenue_cents === 'number') continue;
+    if (e.ticket_type === 'paid' && typeof e.price_cents === 'number' && typeof e.registered_count === 'number'){
+      e.revenue_cents = e.registered_count * e.price_cents;
+    }
+  }
+  return rows;
+}
+
 function updateStats(rows){
   const totals = rows.reduce((acc, e)=>{
+    const revenueCents = (typeof e.revenue_cents === 'number')
+      ? e.revenue_cents
+      : ((e.ticket_type === 'paid' && typeof e.price_cents === 'number' && typeof e.registered_count === 'number')
+          ? (e.registered_count * e.price_cents)
+          : 0);
     acc.events += 1;
     acc.attendees += (e.registered_count || 0);
     acc.checkins += (e.checkin_count || 0);
-    acc.revenue += (e.revenue_cents || 0);
+    acc.revenue += (revenueCents || 0);
     return acc;
   }, { events:0, attendees:0, checkins:0, revenue:0 });
   setText('#stat-total-events', totals.events.toString());
@@ -339,6 +365,8 @@ async function loadPage(page){
     let { rows, total } = await fetchEvents(page);
     // Fallback: calculer les inscrits si l'agrégat manque
     rows = await fillRegisteredCountsIfMissing(rows);
+    // Fallback: calculer le revenu si l'agrégat manque
+    rows = await fillRevenueIfMissing(rows);
     try{ console.table(rows.map(r=>({ id:r.id, title:r.title, status:r.status, slug:r.slug }))); }catch{}
     state.total = total;
     sk.innerHTML = '';

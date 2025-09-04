@@ -36,7 +36,7 @@ body.with-sidebar{display:flex;min-height:100vh}
 @media(max-width: 900px){.sidebar-toggle{display:inline-flex;align-items:center;justify-content:center}}
 
 /* Pied de sidebar */
-.app-sidebar__footer{border-top:1px solid var(--color-border-2);padding:var(--space-3)}
-.app-sidebar__footer .btn{width:100%;justify-content:center}
+.app-sidebar__footer{border-top:1px solid var(--color-border-2);padding:0}
+.app-sidebar__footer .btn{display:flex;width:100%;box-sizing:border-box;justify-content:center;margin:var(--space-3);border-radius:10px}
 .btn--logout{background:#e5484d;color:white;border:1px solid #e5484d}
 .btn--logout:hover{filter:brightness(0.96)}

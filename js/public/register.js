@@ -5,6 +5,7 @@
   let currentEvent = null; // données de l'événement chargé
   let pendingPayload = null; // payload en attente de confirmation
   let modalOpen = false; // évite doubles ouvertures
+  let isSubmitting = false; // évite doubles invocations
   function byId(id){ return document.getElementById(id); }
   function fmtDateRange(startISO, endISO){
     if (!startISO && !endISO) return '—';
@@ -359,6 +360,8 @@
   }
 
   async function submitRegistration(payload){
+    if (isSubmitting) { console.warn('[register] submit already in progress, ignoring'); return; }
+    isSubmitting = true;
     setLoading(true);
     setFeedback('', 'info');
     try{
@@ -376,6 +379,7 @@
           closeConfirmModal();
           console.log('[DEBUG] Modal closed, modalOpen now:', modalOpen);
           setLoading(false);
+          isSubmitting = false;
           return;
         }
       }
@@ -417,6 +421,21 @@
           }
         }
       }catch(parseErr){ console.warn('Failed to parse error body', parseErr); }
+
+      // Si Supabase JS remonte une erreur alors que la fonction a renvoyé 2xx, traiter comme un succès.
+      if (typeof status === 'number' && status >= 200 && status < 300) {
+        console.warn('[register] invoke threw but HTTP status is 2xx, treating as success');
+        setFeedback('Inscription enregistrée. Vérifiez votre boîte mail si un billet/confirmation est envoyé.', 'info');
+        const form = byId('public-register-form');
+        form?.querySelectorAll('input,button').forEach(el=>el.disabled = true);
+        await updateRemainingPlaces();
+        closeConfirmModal();
+        openThankModal();
+        setTimeout(tryClosePage, 2500);
+        setLoading(false);
+        isSubmitting = false;
+        return;
+      }
       // Fallback robuste: si 403 sans code clair, vérifier en base si le participant existe déjà
       if (status === 403 && !errCode && currentEvent && byId('pr-email')){
         try{
@@ -433,9 +452,38 @@
             clearForm();
             closeConfirmModal();
             setLoading(false);
+            isSubmitting = false;
             return;
           }
         }catch{ /* ignore */ }
+      }
+
+      // Dernier filet: après toute erreur, vérifier si le participant a été créé malgré tout.
+      // Cela couvre les cas d'erreurs réseau éphémères et d'incohérences SDK.
+      if (currentEvent && byId('pr-email')){
+        try{
+          const supa = window.AppAPI.getClient();
+          const emailLower = byId('pr-email').value.trim().toLowerCase();
+          const { count: postCount } = await supa
+            .from('participants')
+            .select('id', { head: true, count: 'exact' })
+            .eq('event_id', currentEvent.id)
+            .eq('email_lower', emailLower)
+            .eq('status', 'confirmed');
+          if (typeof postCount === 'number' && postCount > 0) {
+            console.warn('[register] Participant found after error; treating as success');
+            setFeedback('Inscription enregistrée. Vérifiez votre boîte mail si un billet/confirmation est envoyé.', 'info');
+            const form = byId('public-register-form');
+            form?.querySelectorAll('input,button').forEach(el=>el.disabled = true);
+            await updateRemainingPlaces();
+            closeConfirmModal();
+            openThankModal();
+            setTimeout(tryClosePage, 2500);
+            setLoading(false);
+            isSubmitting = false;
+            return;
+          }
+        } catch {/* ignore */}
       }
 
       const uiMsg = mapErrorCode(errCode, msg);
@@ -453,6 +501,7 @@
         closeConfirmModal();
         console.log('[DEBUG] Modal closed (error path), modalOpen now:', modalOpen);
         setLoading(false);
+        isSubmitting = false;
         return;
       }
 
@@ -463,6 +512,7 @@
       }
       setFeedback(uiMsg, 'error');
       setLoading(false);
+      isSubmitting = false;
     }
   }
 
@@ -554,28 +604,7 @@
       };
       submitRegistration(payload);
     });
-    // Extra safety: handle direct click on submit for paid to ensure modal shows
-    const submitBtn = byId('pr-submit');
-    submitBtn?.addEventListener('click', (ev)=>{
-      if (currentEvent && String(currentEvent.ticket_type||'').toLowerCase() === 'paid'){
-        // Ouvrir explicitement le modal et empêcher la soumission native si nécessaire
-        ev.preventDefault();
-        if (!modalOpen){
-          const form = byId('public-register-form');
-          const slug = form?.dataset?.slug || new URLSearchParams(location.search).get('e');
-          const firstname = byId('pr-firstname').value.trim();
-          const lastname = byId('pr-lastname').value.trim();
-          const payload = {
-            slug,
-            full_name: `${firstname} ${lastname}`.trim(),
-            email: byId('pr-email').value.trim(),
-            phone: byId('pr-phone').value.trim() || null,
-            client_ip: null,
-          };
-          openConfirmModal(payload);
-        }
-      }
-    });
+    // Note: on évite un écouteur supplémentaire sur le bouton Submit pour prévenir les doubles soumissions.
     // ESC pour fermer le modal de confirmation
     document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') closeConfirmModal(); });
 

@@ -5,8 +5,8 @@ body.with-sidebar{display:flex;min-height:100vh}
 .app-sidebar::after{content:"";position:absolute;top:0;right:-1px;width:16px;height:100%;pointer-events:none;background:linear-gradient(to right, rgba(0,0,0,.06), rgba(0,0,0,0))}
 .app-sidebar__brand{display:flex;align-items:center;gap:.6rem;padding:var(--space-4);font-weight:700;border-bottom:1px solid var(--color-border-2)}
 .app-sidebar__nav{padding:var(--space-3) var(--space-2);display:flex;flex-direction:column;gap:.25rem;flex:1 1 auto;overflow:hidden}
-.app-sidebar__nav a{display:flex;align-items:center;gap:.6rem;padding:.55rem .75rem;border-radius:10px;color:var(--color-text);border:1px solid transparent;position:relative;width:calc(100% - 12px);margin:0 6px;box-sizing:border-box;outline-offset:0;transition:background-color var(--dur) var(--ease), color var(--dur) var(--ease), border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease)}
-.app-sidebar__nav a::before{content:"";position:absolute;left:6px;top:6px;bottom:6px;width:4px;border-radius:4px;background:var(--color-primary);opacity:0;transform:scaleY(.4);transition:opacity var(--dur) var(--ease), transform var(--dur) var(--ease)}
+.app-sidebar__nav a{display:flex;align-items:center;gap:.6rem;padding:.55rem .75rem;border-radius:10px;color:var(--color-text);border:1px solid transparent;position:relative;width:calc(100% - 24px);margin:0 16px 0 8px;box-sizing:border-box;outline-offset:0;transition:background-color var(--dur) var(--ease), color var(--dur) var(--ease), border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease)}
+.app-sidebar__nav a::before{content:"";position:absolute;left:8px;top:6px;bottom:6px;width:4px;border-radius:4px;background:var(--color-primary);opacity:0;transform:scaleY(.4);transition:opacity var(--dur) var(--ease), transform var(--dur) var(--ease)}
 .app-sidebar__nav a:hover{background:var(--color-primary-10);border-color:var(--color-primary-30);color:var(--color-primary);box-shadow:inset 0 0 0 1px var(--color-primary-20)}
 .app-sidebar__nav a:hover::before{opacity:1;transform:scaleY(1)}
 .app-sidebar__nav a:focus,
@@ -37,6 +37,6 @@ body.with-sidebar{display:flex;min-height:100vh}
 
 /* Pied de sidebar */
 .app-sidebar__footer{border-top:1px solid var(--color-border-2);padding:0;overflow:hidden}
-.app-sidebar__footer .btn{display:flex;width:calc(100% - 2*var(--space-3));box-sizing:border-box;justify-content:center;margin:var(--space-3);border-radius:10px}
+.app-sidebar__footer .btn{display:flex;width:calc(100% - (2 * var(--space-4)));box-sizing:border-box;justify-content:center;margin:var(--space-3) var(--space-4);border-radius:10px}
 .btn--logout{background:#e5484d;color:white;border:1px solid #e5484d}
 .btn--logout:hover{filter:brightness(0.96)}

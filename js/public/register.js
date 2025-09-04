@@ -394,16 +394,8 @@
       let errCode = undefined;
       let status = undefined;
       
-      // Traitement spécial pour les erreurs Supabase Edge Functions
-      if (err?.message?.includes('Edge Function returned a non-2xx status code')) {
-        console.log('[DEBUG] Detected Edge Function non-2xx error, checking for duplicate registration');
-        // Fermer le modal et vider le formulaire pour permettre une nouvelle inscription
-        setFeedback('Vous êtes déjà inscrit pour cet événement.', 'info');
-        clearForm();
-        closeConfirmModal();
-        setLoading(false);
-        return;
-      }
+      // IMPORTANT: Ne pas conclure trop vite à un doublon sur un simple statut non-2xx.
+      // On laisse la suite parser la réponse pour identifier précisément le code d'erreur.
       
       try{
         // Supabase JS place la réponse dans err.context.response (Edge Functions)
@@ -464,6 +456,11 @@
         return;
       }
 
+      // En cas d'erreur générique, s'assurer que le modal est bien fermé pour éviter un écran bloqué
+      if (modalOpen) {
+        console.log('[DEBUG] Closing confirm modal due to generic error');
+        closeConfirmModal();
+      }
       setFeedback(uiMsg, 'error');
       setLoading(false);
     }

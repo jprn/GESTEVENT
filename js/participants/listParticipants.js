@@ -234,7 +234,7 @@
     try { console.info('[Participants UI] version v2 loaded'); document.body.setAttribute('data-participants-ui','v2'); } catch {}
     root.innerHTML = `
       <div class="participants">
-        <div class="card card--compact">
+        <div class="card card--compact card--accent">
           <div class="toolbar toolbar--in-card">
             <select id="ev-select" class="form-control" aria-label="Sélectionner un événement"></select>
             <input id="search" class="form-control" placeholder="Rechercher nom, email, téléphone" aria-label="Recherche"/>
@@ -245,7 +245,7 @@
           </div>
         </div>
 
-        <div class="card">
+        <div class="card card--results">
           <section class="stats" id="p-stats">
             <div class="stats__note" id="stats-note" hidden>Stats filtrées</div>
             <div class="stat"><span class="stat__value" id="stat-inscrits">—</span><span class="stat__label">Inscrits</span></div>

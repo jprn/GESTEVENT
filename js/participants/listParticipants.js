@@ -234,45 +234,52 @@
     try { console.info('[Participants UI] version v2 loaded'); document.body.setAttribute('data-participants-ui','v2'); } catch {}
     root.innerHTML = `
       <div class="participants">
-        <section class="stats" id="p-stats">
-          <div class="stats__note" id="stats-note" hidden>Stats filtrées</div>
-          <div class="stat"><span class="stat__value" id="stat-inscrits">—</span><span class="stat__label">Inscrits</span></div>
-          <div class="stat"><span class="stat__value" id="stat-checkins">—</span><span class="stat__label">Check‑ins</span></div>
-          <div class="stat"><span class="stat__value" id="stat-revenue">—</span><span class="stat__label">Revenu</span></div>
-          <div class="stat"><span class="stat__value" id="stat-cap">—</span><span class="stat__label">Capacité</span></div>
-          <div class="stat"><span class="stat__value" id="stat-remaining">—</span><span class="stat__label">Restants</span></div>
-          <div class="stat">
-            <span class="stat__value" id="stat-fillpct">—</span>
-            <span class="stat__label">Remplissage</span>
-            <div class="progress" style="margin-top:8px">
-              <div class="progress__bar" id="stat-fillbar" style="width:0%"></div>
+        <div class="card card--compact">
+          <div class="toolbar toolbar--in-card">
+            <select id="ev-select" class="form-control" aria-label="Sélectionner un événement"></select>
+            <input id="search" class="form-control" placeholder="Rechercher nom, email, téléphone" aria-label="Recherche"/>
+            <div class="actions">
+              <button id="btn-refresh" class="btn btn--ghost" aria-label="Rafraîchir la liste">Rafraîchir</button>
+              <button id="btn-export" class="btn" disabled aria-disabled="true">Exporter CSV</button>
             </div>
           </div>
-        </section>
-        <div class="toolbar">
-          <select id="ev-select" class="form-control"></select>
-          <input id="search" class="form-control" placeholder="Rechercher nom, email, téléphone"/>
-          <button id="btn-refresh" class="btn btn-secondary">Rafraîchir</button>
-          <button id="btn-export" class="btn" disabled>Exporter CSV</button>
         </div>
-        <div class="table-meta">
-          <div><strong id="results-count">0</strong> résultat(s)</div>
-          <div id="ev-meta"></div>
-        </div>
-        <div id="empty" class="empty">Chargement…</div>
-        <div class="table-wrap">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Nom</th>
-                <th>Email</th>
-                <th>Téléphone</th>
-                <th>Statut</th>
-                <th>Inscrit le</th>
-              </tr>
-            </thead>
-            <tbody id="tbl-body"></tbody>
-          </table>
+
+        <div class="card">
+          <section class="stats" id="p-stats">
+            <div class="stats__note" id="stats-note" hidden>Stats filtrées</div>
+            <div class="stat"><span class="stat__value" id="stat-inscrits">—</span><span class="stat__label">Inscrits</span></div>
+            <div class="stat"><span class="stat__value" id="stat-checkins">—</span><span class="stat__label">Check‑ins</span></div>
+            <div class="stat"><span class="stat__value" id="stat-revenue">—</span><span class="stat__label">Revenu</span></div>
+            <div class="stat"><span class="stat__value" id="stat-cap">—</span><span class="stat__label">Capacité</span></div>
+            <div class="stat"><span class="stat__value" id="stat-remaining">—</span><span class="stat__label">Restants</span></div>
+            <div class="stat">
+              <span class="stat__value" id="stat-fillpct">—</span>
+              <span class="stat__label">Remplissage</span>
+              <div class="progress" style="margin-top:8px">
+                <div class="progress__bar" id="stat-fillbar" style="width:0%"></div>
+              </div>
+            </div>
+          </section>
+          <div class="table-meta">
+            <div><strong id="results-count">0</strong> résultat(s)</div>
+            <div id="ev-meta"></div>
+          </div>
+          <div id="empty" class="empty">Chargement…</div>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Nom</th>
+                  <th>Email</th>
+                  <th>Téléphone</th>
+                  <th>Statut</th>
+                  <th>Inscrit le</th>
+                </tr>
+              </thead>
+              <tbody id="tbl-body"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     `;

@@ -7,9 +7,15 @@
 @media (max-width: 520px){.participants .stats{grid-template-columns:1fr}}
 .participants .stats__note{grid-column:1 / -1;display:inline-flex;align-items:center;gap:8px;width:max-content;background:var(--color-primary-50);color:#0b3a83;border:1px solid var(--color-primary-50);border-radius:999px;padding:4px 10px;font-size:var(--fs-12);font-weight:600}
 
-/* Toolbar */
-.participants .toolbar{position:sticky;top:8px;z-index:5;display:grid;grid-template-columns:1.2fr 1fr auto auto;gap:var(--space-3);align-items:center;margin-bottom:var(--space-4);background:var(--color-elev);border:var(--border);border-radius:12px;padding:var(--space-3);box-shadow:var(--shadow-sm);backdrop-filter:saturate(1.1) blur(2px)}
-@media(max-width:880px){.participants .toolbar{grid-template-columns:1fr;gap:var(--space-2)}}
+/* Toolbar (dans une card) */
+.participants .toolbar{display:grid;grid-template-columns:minmax(220px, .6fr) minmax(220px, 1fr) auto;gap:var(--space-3);align-items:center;margin-bottom:0}
+.participants .toolbar .actions{display:flex;gap:.5rem;justify-content:flex-end;flex-wrap:nowrap}
+.participants .toolbar .actions .btn{white-space:nowrap}
+.participants .toolbar.toolbar--in-card{position:relative;top:auto;z-index:auto;background:transparent;border:none;border-radius:0;padding:0;box-shadow:none;backdrop-filter:none}
+@media(max-width:880px){
+  .participants .toolbar{grid-template-columns:1fr;gap:var(--space-2)}
+  .participants .toolbar .actions{justify-content:flex-start;flex-wrap:wrap}
+}
 
 /* Inputs (form-control utilisé dans cette page) */
 .participants .form-control{width:100%;padding:10px 12px;border:var(--border);border-radius:var(--radius-md);background:var(--color-elev);color:var(--color-text);transition:border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease)}

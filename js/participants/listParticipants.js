@@ -323,6 +323,22 @@
       </div>
     `;
 
+    // Effet sticky: ombre sous l'en-tête quand on scrolle la table
+    function bindStickyShadow(){
+      const wrap = document.querySelector('.participants .table-wrap');
+      if (!wrap) return;
+      const onScroll = ()=>{
+        if (wrap.scrollTop > 0) wrap.classList.add('is-scrolled');
+        else wrap.classList.remove('is-scrolled');
+      };
+      wrap.removeEventListener('scroll', wrap._onScroll);
+      wrap._onScroll = onScroll;
+      wrap.addEventListener('scroll', onScroll, { passive: true });
+      // init
+      onScroll();
+    }
+    bindStickyShadow();
+
     byId('ev-select').addEventListener('change', async (e)=>{
       currentEventId = e.target.value || null;
       currentEventTitle = e.target.options && e.target.selectedIndex >= 0 ? (e.target.options[e.target.selectedIndex].textContent || '') : '';

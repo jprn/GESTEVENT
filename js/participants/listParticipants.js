@@ -231,6 +231,7 @@
 
   function mount(){
     const root = byId('app');
+    try { console.info('[Participants UI] version v2 loaded'); document.body.setAttribute('data-participants-ui','v2'); } catch {}
     root.innerHTML = `
       <div class="participants">
         <section class="stats" id="p-stats">

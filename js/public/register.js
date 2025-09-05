@@ -344,6 +344,39 @@
     if (m) m.hidden = false;
   }
 
+  function showQrInThankModal(qrUrl){
+    try{
+      const box = byId('tm-qr-box');
+      const img = byId('tm-qr');
+      const a = byId('tm-download');
+      if (!box || !img || !a) return;
+      if (qrUrl){
+        img.src = qrUrl;
+        a.href = qrUrl;
+        box.hidden = false;
+      }
+    }catch{/* ignore UI errors */}
+  }
+
+  async function tryLoadQrFromDB(){
+    try{
+      if (!currentEvent) return;
+      const emailLower = byId('pr-email')?.value?.trim()?.toLowerCase();
+      if (!emailLower) return;
+      const supa = window.AppAPI.getClient();
+      const { data, error } = await supa
+        .from('participants')
+        .select('id, qr_png_url')
+        .eq('event_id', currentEvent.id)
+        .eq('email_lower', emailLower)
+        .eq('status', 'confirmed')
+        .limit(1)
+        .maybeSingle();
+      if (error) return;
+      if (data && data.qr_png_url){ showQrInThankModal(data.qr_png_url); }
+    }catch{/* ignore */}
+  }
+
   function tryClosePage(){
     // Tente de fermer l'onglet. Si le navigateur refuse (onglet non ouvert par script), fallback.
     window.close();
@@ -388,6 +421,9 @@
       form?.querySelectorAll('input,button').forEach(el=>el.disabled = true);
       // Mettre à jour le nombre de places restantes
       await updateRemainingPlaces();
+      // Afficher le QR si fourni par le backend, sinon tenter de le charger depuis la base
+      if (data && data.qr_url){ showQrInThankModal(data.qr_url); }
+      else { await tryLoadQrFromDB(); }
       closeConfirmModal();
       openThankModal();
       // Fermeture automatique après un court délai
@@ -429,6 +465,7 @@
         const form = byId('public-register-form');
         form?.querySelectorAll('input,button').forEach(el=>el.disabled = true);
         await updateRemainingPlaces();
+        await tryLoadQrFromDB();
         closeConfirmModal();
         openThankModal();
         setTimeout(tryClosePage, 2500);
@@ -476,6 +513,7 @@
             const form = byId('public-register-form');
             form?.querySelectorAll('input,button').forEach(el=>el.disabled = true);
             await updateRemainingPlaces();
+            await tryLoadQrFromDB();
             closeConfirmModal();
             openThankModal();
             setTimeout(tryClosePage, 2500);

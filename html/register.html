@@ -97,6 +97,11 @@
       <h3 id="tm-title">Merci pour votre réservation</h3>
       <div class="cm-body">
         <p>Votre demande a bien été enregistrée. Vous allez recevoir un email de confirmation avec votre billet.</p>
+        <div id="tm-qr-box" style="margin-top:12px; text-align:center;" hidden>
+          <p style="margin-bottom:8px; font-weight:600;">Votre billet (QR code):</p>
+          <img id="tm-qr" alt="QR Code du billet" style="max-width:240px; width:100%; height:auto; image-rendering: crisp-edges;" />
+          <p style="margin-top:8px;"><a id="tm-download" href="#" download="ticket.png">Télécharger le billet</a></p>
+        </div>
       </div>
       <div class="cm-actions">
         <button id="tm-close" type="button" class="btn">Fermer</button>

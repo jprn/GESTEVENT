@@ -218,7 +218,8 @@ serve(async (req) => {
     });
   } catch {/* ignore email errors */}
 
-  return json({ participant_id: participantId });
+  // Return participant id and the signed QR URL so the frontend can show it immediately
+  return json({ participant_id: participantId, qr_url: qrUrl });
   } catch(err) {
     console.error('[public_register] unhandled_error', err);
     return serverError('Erreur interne', 'unhandled_error');

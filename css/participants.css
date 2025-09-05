@@ -12,6 +12,12 @@
 .participants .toolbar > *{min-width:0}
 .participants .toolbar select.form-control{width:100%}
 .participants .toolbar input.form-control{width:100%}
+.participants .toolbar .form-control{
+  font-size:clamp(16px, 2vw, 18px);
+  padding:14px 14px;
+  border-radius:12px;
+}
+.participants .toolbar .form-control::placeholder{font-size:inherit}
 .participants .toolbar .actions{display:flex;gap:.6rem;justify-content:flex-end;flex-wrap:nowrap;padding-left:var(--space-2)}
 .participants .toolbar .actions .btn{white-space:nowrap}
 .participants .toolbar .btn--ghost{padding-inline:.8rem}

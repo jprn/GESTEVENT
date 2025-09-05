@@ -192,12 +192,13 @@
       const capTxt = (lastEventMeta && typeof lastEventMeta.capacity === 'number') ? ` · Capacité ${lastEventMeta.capacity}` : '';
       evm.textContent = (currentEventTitle || '') + capTxt;
     }
-    // Coloration conditionnelle de la card des résultats (vert pâle si filtre actif et résultats présents)
+    // Coloration conditionnelle de la card des résultats
     try{
       const resultsCard = document.querySelector('.participants .card--results');
       if (resultsCard){
-        if (q && currentRows.length > 0) resultsCard.classList.add('card--success');
-        else resultsCard.classList.remove('card--success');
+        // Dès qu'un événement est sélectionné, la card passe en vert pâle
+        // (reste neutre uniquement quand aucun événement n'est choisi)
+        resultsCard.classList.add('card--success');
       }
     }catch{}
     // Rendu tableau (après tri)

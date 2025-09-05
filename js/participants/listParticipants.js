@@ -16,6 +16,8 @@
   let currentRows = [];
   let lastEventMeta = { capacity: null, ticket_type: null, price_cents: null };
   const eventMetaMap = new Map(); // id -> {capacity, ticket_type, price_cents, title}
+  let sortKey = 'created_at'; // 'created_at' | 'full_name'
+  let sortDir = 'desc'; // 'asc' | 'desc'
 
   function applyStatsUI(registered, checkins, revenueCents, cap){
     const sIns = byId('stat-inscrits');
@@ -143,6 +145,16 @@
     const empty = byId('empty');
     tableBody.innerHTML = '';
     empty.hidden = true;
+    // Afficher des skeletons pendant le chargement
+    tableBody.innerHTML = Array.from({length:6}).map(()=>`
+      <tr>
+        <td><span class="skeleton rect" style="display:inline-block;height:14px;width:60%;border-radius:6px"></span></td>
+        <td><span class="skeleton rect" style="display:inline-block;height:14px;width:80%;border-radius:6px"></span></td>
+        <td><span class="skeleton rect" style="display:inline-block;height:14px;width:50%;border-radius:6px"></span></td>
+        <td><span class="skeleton rect" style="display:inline-block;height:14px;width:40%;border-radius:6px"></span></td>
+        <td><span class="skeleton rect" style="display:inline-block;height:14px;width:50%;border-radius:6px"></span></td>
+      </tr>
+    `).join('');
 
     if (!currentEventId){
       empty.hidden = false;
@@ -151,6 +163,7 @@
       const evm = byId('ev-meta'); if (evm) evm.textContent = '';
       const resultsCard = document.querySelector('.participants .card--results');
       if (resultsCard) resultsCard.classList.remove('card--success');
+      tableBody.innerHTML = '';
       return;
     }
 
@@ -187,12 +200,26 @@
         else resultsCard.classList.remove('card--success');
       }
     }catch{}
-    // Rendu tableau
-    if (!currentRows.length){
+    // Rendu tableau (après tri)
+    const rowsSorted = [...currentRows].sort((a,b)=>{
+      if (sortKey === 'full_name'){
+        const av = (a.full_name||'').toLowerCase();
+        const bv = (b.full_name||'').toLowerCase();
+        if (av < bv) return sortDir==='asc' ? -1 : 1;
+        if (av > bv) return sortDir==='asc' ? 1 : -1;
+        return 0;
+      } else {
+        const at = new Date(a.created_at||0).getTime();
+        const bt = new Date(b.created_at||0).getTime();
+        return sortDir==='asc' ? (at-bt) : (bt-at);
+      }
+    });
+
+    if (!rowsSorted.length){
       empty.hidden = false; empty.textContent = 'Aucun participant';
     } else {
       empty.hidden = true;
-      const rowsHtml = currentRows.map((r)=>{
+      const rowsHtml = rowsSorted.map((r)=>{
         const status = (r.status || '—').toLowerCase();
         let badgeClass = 'badge';
         if (status === 'checked_in') badgeClass += ' badge--info';
@@ -250,6 +277,7 @@
             <input id="search" class="form-control" placeholder="Rechercher nom, email, téléphone" aria-label="Recherche"/>
             <div class="actions">
               <button id="btn-refresh" class="btn btn--ghost" aria-label="Rafraîchir la liste">Rafraîchir</button>
+              <button id="btn-clear" class="btn btn--ghost" aria-label="Effacer la recherche">Effacer</button>
               <button id="btn-export" class="btn" disabled aria-disabled="true">Exporter CSV</button>
             </div>
           </div>
@@ -280,11 +308,11 @@
             <table class="table">
               <thead>
                 <tr>
-                  <th>Nom</th>
+                  <th class="th-sortable" data-key="full_name">Nom <span class="sort" id="sort-name"></span></th>
                   <th>Email</th>
                   <th>Téléphone</th>
                   <th>Statut</th>
-                  <th>Inscrit le</th>
+                  <th class="th-sortable" data-key="created_at">Inscrit le <span class="sort" id="sort-date"></span></th>
                 </tr>
               </thead>
               <tbody id="tbl-body"></tbody>
@@ -313,6 +341,38 @@
       // Rafraîchir les métadonnées (capacity/pricing) puis la liste
       await loadEventStats();
       await loadParticipants();
+    });
+    const btnClear = byId('btn-clear');
+    btnClear.addEventListener('click', async ()=>{
+      const s = byId('search');
+      s.value = '';
+      await loadParticipants();
+    });
+
+    // Tri par colonnes
+    function updateSortIndicators(){
+      const nameIco = byId('sort-name');
+      const dateIco = byId('sort-date');
+      if (nameIco) nameIco.textContent = (sortKey==='full_name' ? (sortDir==='asc'?'▲':'▼') : '');
+      if (dateIco) dateIco.textContent = (sortKey==='created_at' ? (sortDir==='asc'?'▲':'▼') : '');
+    }
+    function setSort(nextKey){
+      if (sortKey === nextKey){ sortDir = (sortDir==='asc'?'desc':'asc'); }
+      else { sortKey = nextKey; sortDir = (nextKey==='full_name'?'asc':'desc'); }
+      updateSortIndicators();
+      // Re-rendu sans requête supplémentaire
+      const tbody = byId('tbl-body');
+      if (!tbody) return;
+      // Reutiliser currentRows et logique de loadParticipants: on déclenche un léger refresh
+      loadParticipants();
+    }
+    updateSortIndicators();
+    document.querySelectorAll('.th-sortable').forEach(th=>{
+      th.style.cursor = 'pointer';
+      th.addEventListener('click', ()=>{
+        const k = th.getAttribute('data-key');
+        if (k) setSort(k);
+      });
     });
   }
 

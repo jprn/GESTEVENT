@@ -20,12 +20,33 @@
 
 /* Table */
 .table-wrap{border:1px solid var(--color-border-2);border-radius:14px;overflow:auto;background:var(--color-elev);box-shadow:var(--shadow-sm)}
-.table{width:100%;border-collapse:collapse;min-width:720px}
+.table{width:100%;border-collapse:separate;border-spacing:0;min-width:720px}
 .table thead th{position:sticky;top:0;background:var(--color-surface-2);color:var(--color-text-2);text-align:left;padding:.75rem;border-bottom:1px solid var(--color-border-2);font-weight:600}
+.table thead th:first-child{border-top-left-radius:12px}
+.table thead th:last-child{border-top-right-radius:12px}
 .table tbody td{padding:.7rem;border-bottom:1px solid var(--color-border-2)}
+.table tbody tr:nth-child(even){background:var(--color-surface)}
 .table tbody tr:hover{background:var(--color-surface-2)}
+.table tfoot td{padding:.6rem .75rem;color:var(--color-text-2)}
 
 /* Progress bar spacing in stats */
 .participants .stat .progress{height:10px}
+
+/* Table meta (compteur résultats) */
+.participants .table-meta{display:flex;align-items:center;justify-content:space-between;color:var(--color-text-2);font-size:var(--fs-12);margin:-4px 0 var(--space-3)}
+
+/* Boutons spécifiques */
+.participants .btn-secondary{background:transparent;color:var(--color-text);border:1px solid var(--color-border-2)}
+.participants .btn-secondary:hover{background:var(--color-surface-2)}
+
+/* Badges de statut pour participants */
+.badge{display:inline-block;border-radius:999px;padding:.15rem .6rem;font-size:12px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;border:1px solid transparent}
+.badge--ok{background:#dff5e6;color:#1e7f3b;border-color:#b8e4c2}
+.badge--info{background:#e0edff;color:#0b3a83;border-color:#a9c7ff}
+.badge--warn{background:#fff4d6;color:#8a5b00;border-color:#ffd67a}
+.badge--err{background:#ffe3e0;color:#a72823;border-color:#ffb3ac}
+
+/* Placeholders input plus doux */
+.participants .form-control::placeholder{color:var(--color-text-2)}
 
 

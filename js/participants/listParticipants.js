@@ -144,7 +144,13 @@
     tableBody.innerHTML = '';
     empty.hidden = true;
 
-    if (!currentEventId){ empty.hidden = false; empty.textContent = 'Choisissez un événement.'; return; }
+    if (!currentEventId){
+      empty.hidden = false;
+      empty.textContent = 'Choisissez un événement.';
+      const resultsEl = byId('results-count'); if (resultsEl) resultsEl.textContent = '0';
+      const evm = byId('ev-meta'); if (evm) evm.textContent = '';
+      return;
+    }
 
     const q = byId('search').value.trim();
     const note = byId('stats-note'); if (note) note.hidden = !q;
@@ -166,6 +172,11 @@
       return;
     }
     currentRows = data || [];
+    const resultsEl = byId('results-count'); if (resultsEl) resultsEl.textContent = String(currentRows.length);
+    const evm = byId('ev-meta'); if (evm) {
+      const capTxt = (lastEventMeta && typeof lastEventMeta.capacity === 'number') ? ` · Capacité ${lastEventMeta.capacity}` : '';
+      evm.textContent = (currentEventTitle || '') + capTxt;
+    }
     // Rendu tableau
     if (!currentRows.length){
       empty.hidden = false; empty.textContent = 'Aucun participant';
@@ -242,6 +253,10 @@
           <input id="search" class="form-control" placeholder="Rechercher nom, email, téléphone"/>
           <button id="btn-refresh" class="btn btn-secondary">Rafraîchir</button>
           <button id="btn-export" class="btn" disabled>Exporter CSV</button>
+        </div>
+        <div class="table-meta">
+          <div><strong id="results-count">0</strong> résultat(s)</div>
+          <div id="ev-meta"></div>
         </div>
         <div id="empty" class="empty">Chargement…</div>
         <div class="table-wrap">

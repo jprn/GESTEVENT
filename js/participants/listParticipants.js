@@ -149,6 +149,8 @@
       empty.textContent = 'Choisissez un événement.';
       const resultsEl = byId('results-count'); if (resultsEl) resultsEl.textContent = '0';
       const evm = byId('ev-meta'); if (evm) evm.textContent = '';
+      const resultsCard = document.querySelector('.participants .card--results');
+      if (resultsCard) resultsCard.classList.remove('card--success');
       return;
     }
 
@@ -177,6 +179,14 @@
       const capTxt = (lastEventMeta && typeof lastEventMeta.capacity === 'number') ? ` · Capacité ${lastEventMeta.capacity}` : '';
       evm.textContent = (currentEventTitle || '') + capTxt;
     }
+    // Coloration conditionnelle de la card des résultats (vert pâle si filtre actif et résultats présents)
+    try{
+      const resultsCard = document.querySelector('.participants .card--results');
+      if (resultsCard){
+        if (q && currentRows.length > 0) resultsCard.classList.add('card--success');
+        else resultsCard.classList.remove('card--success');
+      }
+    }catch{}
     // Rendu tableau
     if (!currentRows.length){
       empty.hidden = false; empty.textContent = 'Aucun participant';

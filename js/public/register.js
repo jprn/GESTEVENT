@@ -6,17 +6,40 @@
   let pendingPayload = null; // payload en attente de confirmation
   let modalOpen = false; // évite doubles ouvertures
   let isSubmitting = false; // évite doubles invocations
-  // Auto-close control via URL params: ?stay=1 or ?debug or ?no_close disables auto-close
+  // Auto-close control via URL params / hash / localStorage
+  // Disables auto-close if any of the following is present:
+  // - ?stay=1, ?stay=true, or presence of ?stay
+  // - ?debug, ?no_close
+  // - #stay, #debug in hash
+  // - localStorage.no_close === '1'
   function shouldAutoClose(){
     try{
       const p = new URLSearchParams(location.search);
       if (p.has('debug')) return false;
       if (p.has('no_close')) return false;
-      if (p.get('stay') === '1') return false;
+      const stayVal = p.get('stay');
+      if (p.has('stay')) return false;
+      if (stayVal === '1' || stayVal === 'true') return false;
+      const hash = (location.hash || '').toLowerCase();
+      if (hash.includes('debug') || hash.includes('stay')) return false;
+      if (typeof localStorage !== 'undefined' && localStorage.getItem('no_close') === '1') return false;
       return true;
     }catch{ return true; }
   }
   const AUTO_CLOSE_MS = shouldAutoClose() ? 2500 : 0;
+  function showNoCloseBadge(){
+    try{
+      if (AUTO_CLOSE_MS > 0) return;
+      const el = document.createElement('div');
+      el.textContent = 'Auto-close désactivé (debug)';
+      Object.assign(el.style, {
+        position: 'fixed', bottom: '8px', right: '8px', background: '#222', color: '#fff',
+        padding: '6px 10px', borderRadius: '8px', fontSize: '12px', opacity: '0.85', zIndex: '10001'
+      });
+      document.addEventListener('DOMContentLoaded', ()=> document.body.appendChild(el));
+    }catch{}
+  }
+  showNoCloseBadge();
   function byId(id){ return document.getElementById(id); }
   function fmtDateRange(startISO, endISO){
     if (!startISO && !endISO) return '—';
@@ -661,7 +684,14 @@
     const tModal = byId('thank-modal');
     const tOverlay = tModal?.querySelector('.modal__overlay');
     const tClose = byId('tm-close');
-    tOverlay?.addEventListener('click', tryClosePage);
-    tClose?.addEventListener('click', tryClosePage);
+    const hideThankModal = ()=>{ if (tModal){ tModal.hidden = true; } };
+    tOverlay?.addEventListener('click', ()=>{
+      if (AUTO_CLOSE_MS > 0) { tryClosePage(); }
+      else { hideThankModal(); }
+    });
+    tClose?.addEventListener('click', ()=>{
+      if (AUTO_CLOSE_MS > 0) { tryClosePage(); }
+      else { hideThankModal(); }
+    });
   });
 })();

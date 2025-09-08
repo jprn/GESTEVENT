@@ -164,6 +164,21 @@ serve(async (req) => {
   }
   const participantId = inserted.id;
 
+  // Ensure the storage bucket exists (idempotent): create 'tickets' if missing
+  try {
+    const { data: buckets } = await supa.storage.listBuckets();
+    const hasTickets = Array.isArray(buckets) && buckets.some((b: any) => b.name === 'tickets');
+    if (!hasTickets) {
+      const { error: bucketErr } = await supa.storage.createBucket('tickets', { public: false, fileSizeLimit: '5MB' });
+      if (bucketErr && !String((bucketErr as any)?.message || '').toLowerCase().includes('already')) {
+        console.warn('[public_register] createBucket(tickets) non-fatal error:', bucketErr);
+      }
+    }
+  } catch (e) {
+    // Non-fatal: if listing/creating buckets fails, we still attempt upload which will surface proper error
+    console.warn('[public_register] bucket check/create skipped due to error:', e);
+  }
+
   // Generate QR PNG
   const qrContent = `${evt.id}.${participantId}`;
   const pngBuffer: Uint8Array = await QRCode.toUint8Array(qrContent, { type: 'png', scale: 6, margin: 1 });

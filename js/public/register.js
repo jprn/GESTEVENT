@@ -6,6 +6,17 @@
   let pendingPayload = null; // payload en attente de confirmation
   let modalOpen = false; // évite doubles ouvertures
   let isSubmitting = false; // évite doubles invocations
+  // Auto-close control via URL params: ?stay=1 or ?debug or ?no_close disables auto-close
+  function shouldAutoClose(){
+    try{
+      const p = new URLSearchParams(location.search);
+      if (p.has('debug')) return false;
+      if (p.has('no_close')) return false;
+      if (p.get('stay') === '1') return false;
+      return true;
+    }catch{ return true; }
+  }
+  const AUTO_CLOSE_MS = shouldAutoClose() ? 2500 : 0;
   function byId(id){ return document.getElementById(id); }
   function fmtDateRange(startISO, endISO){
     if (!startISO && !endISO) return '—';
@@ -426,8 +437,8 @@
       else { await tryLoadQrFromDB(); }
       closeConfirmModal();
       openThankModal();
-      // Fermeture automatique après un court délai
-      setTimeout(tryClosePage, 2500);
+      // Fermeture automatique après un court délai (désactivable via ?stay=1 / ?debug / ?no_close)
+      if (AUTO_CLOSE_MS > 0) setTimeout(tryClosePage, AUTO_CLOSE_MS);
     }catch(err){
       console.error('[public_register] invoke error', err);
       let msg = err?.message || 'Inscription impossible';
@@ -468,7 +479,7 @@
         await tryLoadQrFromDB();
         closeConfirmModal();
         openThankModal();
-        setTimeout(tryClosePage, 2500);
+        if (AUTO_CLOSE_MS > 0) setTimeout(tryClosePage, AUTO_CLOSE_MS);
         setLoading(false);
         isSubmitting = false;
         return;
@@ -516,7 +527,7 @@
             await tryLoadQrFromDB();
             closeConfirmModal();
             openThankModal();
-            setTimeout(tryClosePage, 2500);
+            if (AUTO_CLOSE_MS > 0) setTimeout(tryClosePage, AUTO_CLOSE_MS);
             setLoading(false);
             isSubmitting = false;
             return;
